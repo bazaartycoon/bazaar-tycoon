@@ -30,7 +30,7 @@
     <div class="stats-grid">
         <div class="stat-card">Day<div class="stat-val" id="lblDay">1 / 30</div></div>
         <div class="stat-card">Cash<div class="stat-val" id="lblCash" style="color: #10b981;">$10,000</div></div>
-        <div class="stat-card">Debt<div class="stat-val" id="lblDebt" style="color: #ef4444;">$5,000</div></div>
+        <div class="stat-card">Debt<div class="stat-val" id="lblDebt" style="color: #ef4444;">$0</div></div>
         <div class="stat-card">Warehouse<div class="stat-val" id="lblStorage">0 / 20</div></div>
     </div>
 
@@ -59,7 +59,8 @@
 </div>
 
 <script>
-    let gameState = { day: 1, cash: 10000, debt: 5000, interestAccumulated: 0, currentStorage: 0, maxStorage: 20, 
+    // Başlangıç borcu 'debt' 0 yapıldı
+    let gameState = { day: 1, cash: 10000, debt: 0, interestAccumulated: 0, currentStorage: 0, maxStorage: 20, 
     products: { coffee: { name: "☕ Coffee", price: 100, qty: 0 }, spices: { name: "🌶️ Spices", price: 50, qty: 0 }, fabric: { name: "🧵 Fabric", price: 300, qty: 0 }, gadgets: { name: "💻 Gadgets", price: 1200, qty: 0 } } };
 
     function updateUI() {
@@ -73,28 +74,36 @@
         let html = '<tr><th>Product</th><th>Price</th><th>Stock</th><th>Amount</th><th>Action</th></tr>';
         for (let k in gameState.products) {
             let p = gameState.products[k];
+            // 20 ve Max seçenekleri eklendi
             html += `<tr><td><b>${p.name}</b></td><td style="color:#38bdf8">$${p.price}</td><td>${p.qty}</td>
-            <td><select id="amt_${k}"><option value="1">1</option><option value="5">5</option><option value="10">10</option></select></td>
+            <td><select id="amt_${k}"><option value="1">1</option><option value="5">5</option><option value="10">10</option><option value="20">20</option><option value="max">Max</option></select></td>
             <td><button class="btn btn-buy" onclick="buy('${k}')">Buy</button> <button class="btn btn-sell" onclick="sell('${k}')">Sell</button></td></tr>`;
         }
         document.getElementById('marketTable').innerHTML = html;
     }
 
+    function getAmount(k) {
+        let val = document.getElementById('amt_'+k).value;
+        if (val === 'max') return gameState.maxStorage - gameState.currentStorage;
+        return parseInt(val);
+    }
+
     function buy(k) { 
         let p = gameState.products[k]; 
-        let amt = parseInt(document.getElementById('amt_'+k).value);
-        if (gameState.cash >= p.price * amt && gameState.currentStorage + amt <= gameState.maxStorage) { 
+        let amt = getAmount(k);
+        if (amt > 0 && gameState.cash >= p.price * amt && gameState.currentStorage + amt <= gameState.maxStorage) { 
             gameState.cash -= p.price * amt; p.qty += amt; gameState.currentStorage += amt; updateUI(); 
         } 
     }
     function sell(k) { 
         let p = gameState.products[k]; 
-        let amt = parseInt(document.getElementById('amt_'+k).value);
+        let val = document.getElementById('amt_'+k).value;
+        let amt = (val === 'max') ? p.qty : parseInt(val);
         if (p.qty >= amt) { gameState.cash += p.price * amt; p.qty -= amt; gameState.currentStorage -= amt; updateUI(); } 
     }
-    // ... (Diğer fonksiyonlar: takeLoan, repayLoan, upgradeStorage, nextDay aynı kalabilir)
+    
     function takeLoan() { let amt = parseInt(document.getElementById('bankAmount').value); gameState.cash += amt; gameState.debt += amt; updateUI(); }
-    function repayLoan() { let amt = parseInt(document.getElementById('bankAmount').value); gameState.cash -= amt; gameState.debt -= amt; updateUI(); }
+    function repayLoan() { let amt = parseInt(document.getElementById('bankAmount').value); if(gameState.cash >= amt) { gameState.cash -= amt; gameState.debt -= amt; updateUI(); } }
     function upgradeStorage() { if (gameState.cash >= 2500) { gameState.cash -= 2500; gameState.maxStorage += 20; updateUI(); } }
     function nextDay() { gameState.day++; for (let k in gameState.products) { gameState.products[k].price = Math.round(gameState.products[k].price * (0.8 + Math.random() * 0.4)); } updateUI(); }
 
