@@ -5,23 +5,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Bazaar Tycoon</title>
     <style>
+        * { box-sizing: border-box; } /* Taşmayı engellemek için kritik */
         :root { --bg-color: #0f172a; --card-color: #1e293b; --text-color: #f8fafc; --accent-color: #38bdf8; --buy-color: #10b981; --sell-color: #ef4444; }
-        body { font-family: sans-serif; background-color: var(--bg-color); color: var(--text-color); margin: 0; padding: 10px; padding-bottom: 120px; }
-        .container { max-width: 600px; margin: 0 auto; background-color: var(--card-color); padding: 15px; border-radius: 12px; }
+        body { font-family: sans-serif; background-color: var(--bg-color); color: var(--text-color); margin: 0; padding: 10px; overflow-x: hidden; }
+        .container { max-width: 600px; margin: 0 auto; background-color: var(--card-color); padding: 15px; border-radius: 12px; width: 100%; }
         .header { text-align: center; border-bottom: 2px solid #334155; padding-bottom: 10px; margin-bottom: 15px; }
         .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
         .stat-card { background-color: #0f172a; padding: 10px; border-radius: 8px; text-align: center; border: 1px solid #334155; }
-        .stat-val { font-size: 1.1rem; font-weight: bold; color: var(--accent-color); }
-        table { width: 100%; border-collapse: collapse; margin-bottom: 15px; font-size: 0.85rem; }
-        th, td { padding: 8px 4px; text-align: center; border-bottom: 1px solid #334155; }
-        .btn { padding: 8px 12px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.8rem; }
+        .stat-val { font-size: 1rem; font-weight: bold; color: var(--accent-color); display: block; }
+        /* Tablo taşmasını engellemek için scroll alanı */
+        .table-wrapper { width: 100%; overflow-x: auto; margin-bottom: 15px; }
+        table { width: 100%; border-collapse: collapse; min-width: 350px; font-size: 0.8rem; }
+        th, td { padding: 8px 2px; text-align: center; border-bottom: 1px solid #334155; }
+        .btn { padding: 8px 10px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 0.75rem; }
         .btn-buy { background-color: var(--buy-color); color: white; }
         .btn-sell { background-color: var(--sell-color); color: white; }
         .btn-action { background-color: var(--accent-color); color: #0f172a; width: 100%; padding: 12px; }
-        .module-box { padding: 15px; border: 1px solid #334155; border-radius: 8px; margin-top: 10px; }
-        select { padding: 8px; width: 100%; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px; margin-bottom: 5px; }
-        /* Sabit Reklam Alanı */
-        .ad-footer { position: fixed; bottom: 0; left: 0; width: 100%; background: #1e293b; height: 100px; border-top: 2px solid #38bdf8; display: flex; justify-content: center; align-items: center; z-index: 1000; }
+        .module-box { padding: 12px; border: 1px solid #334155; border-radius: 8px; margin-top: 10px; }
+        select { padding: 5px; width: 100%; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px; margin-bottom: 5px; }
     </style>
 </head>
 <body>
@@ -30,13 +31,15 @@
     <div class="header"><h2>Bazaar Tycoon</h2></div>
     
     <div class="stats-grid">
-        <div class="stat-card">Day: <span id="lblDay" class="stat-val">1/30</span></div>
-        <div class="stat-card">Cash: <span id="lblCash" class="stat-val">$10,000</span></div>
-        <div class="stat-card">Debt: <span id="lblDebt" class="stat-val">$0</span></div>
-        <div class="stat-card">Stock: <span id="lblStorage" class="stat-val">0/20</span></div>
+        <div class="stat-card">Day <span id="lblDay" class="stat-val">1/30</span></div>
+        <div class="stat-card">Cash <span id="lblCash" class="stat-val">$10,000</span></div>
+        <div class="stat-card">Debt <span id="lblDebt" class="stat-val">$0</span></div>
+        <div class="stat-card">Stock <span id="lblStorage" class="stat-val">0/20</span></div>
     </div>
 
-    <table id="marketTable"></table>
+    <div class="table-wrapper">
+        <table id="marketTable"></table>
+    </div>
 
     <button class="btn btn-action" style="margin-bottom: 20px;" onclick="nextDay()">Advance to Next Day ➔</button>
 
@@ -49,17 +52,14 @@
         </div>
     </div>
 
-    <div class="module-box" style="margin-bottom: 80px;">
+    <div class="module-box" style="margin-bottom: 90px;">
         <h3>📦 Logistics</h3>
         <button class="btn btn-action" onclick="upgradeStorage()">Upgrade Storage ($2,500)</button>
     </div>
 </div>
 
-<div class="ad-footer">
-    <script type="text/javascript">
-        // Adsterra kodunuzu buraya yapıştırın
-        atOptions = { 'key' : '6cb28deb56ed227ba08751f4c06e73e8', 'format' : 'iframe', 'height' : 90, 'width' : 728, 'params' : {} };
-    </script>
+<div style="position: fixed; bottom: 0; left: 0; width: 100%; height: 80px; background: #0f172a; border-top: 1px solid #38bdf8; display: flex; justify-content: center; align-items: center; z-index: 1000;">
+    <script type="text/javascript"> atOptions = { 'key' : '6cb28deb56ed227ba08751f4c06e73e8', 'format' : 'iframe', 'height' : 50, 'width' : 320, 'params' : {} }; </script>
     <script type="text/javascript" src="https://www.highperformanceformat.com/6cb28deb56ed227ba08751f4c06e73e8/invoke.js"></script>
 </div>
 
@@ -73,39 +73,30 @@
         document.getElementById('lblDebt').innerText = `$${gameState.debt.toLocaleString()}`;
         document.getElementById('lblStorage').innerText = `${gameState.currentStorage}/${gameState.maxStorage}`;
         
-        let html = '<tr><th>P</th><th>Price</th><th>Qty</th><th>Amount</th><th>Action</th></tr>';
+        let html = '<tr><th>P</th><th>Price</th><th>Qty</th><th>Amt</th><th>Action</th></tr>';
         for (let k in gameState.products) {
             let p = gameState.products[k];
             html += `<tr><td>${p.name}</td><td>$${p.price}</td><td>${p.qty}</td>
-            <td><select id="amt_${k}"><option value="1">1</option><option value="5">5</option><option value="20">20</option><option value="max">Max</option></select></td>
+            <td><select id="amt_${k}" style="width:50px;"><option value="1">1</option><option value="5">5</option><option value="max">Max</option></select></td>
             <td><button class="btn btn-buy" onclick="buy('${k}')">Buy</button> <button class="btn btn-sell" onclick="sell('${k}')">Sell</button></td></tr>`;
         }
         document.getElementById('marketTable').innerHTML = html;
     }
 
     function buy(k) { 
-        let p = gameState.products[k]; 
-        let val = document.getElementById('amt_'+k).value;
+        let p = gameState.products[k]; let val = document.getElementById('amt_'+k).value;
         let amt = (val === 'max') ? (gameState.maxStorage - gameState.currentStorage) : parseInt(val);
         if (amt > 0 && gameState.cash >= p.price * amt && gameState.currentStorage + amt <= gameState.maxStorage) { 
             gameState.cash -= p.price * amt; p.qty += amt; gameState.currentStorage += amt; updateUI(); 
         } 
     }
     function sell(k) { 
-        let p = gameState.products[k]; 
-        let val = document.getElementById('amt_'+k).value;
+        let p = gameState.products[k]; let val = document.getElementById('amt_'+k).value;
         let amt = (val === 'max') ? p.qty : parseInt(val);
         if (amt > 0 && p.qty >= amt) { gameState.cash += p.price * amt; p.qty -= amt; gameState.currentStorage -= amt; updateUI(); } 
     }
-    function takeLoan() { 
-        let amt = parseInt(document.getElementById('bankAmount').value);
-        if (gameState.debt + amt <= 15000) { gameState.cash += amt; gameState.debt += amt; updateUI(); } 
-        else { alert("Limit: $15,000"); }
-    }
-    function repayLoan() { 
-        let amt = parseInt(document.getElementById('bankAmount').value);
-        if(gameState.cash >= amt) { gameState.cash -= amt; gameState.debt -= amt; updateUI(); } 
-    }
+    function takeLoan() { let amt = parseInt(document.getElementById('bankAmount').value); if (gameState.debt + amt <= 15000) { gameState.cash += amt; gameState.debt += amt; updateUI(); } }
+    function repayLoan() { let amt = parseInt(document.getElementById('bankAmount').value); if(gameState.cash >= amt) { gameState.cash -= amt; gameState.debt -= amt; updateUI(); } }
     function upgradeStorage() { if (gameState.cash >= 2500) { gameState.cash -= 2500; gameState.maxStorage += 20; updateUI(); } }
     function nextDay() { gameState.day++; for (let k in gameState.products) { gameState.products[k].price = Math.round(gameState.products[k].price * (0.8 + Math.random() * 0.4)); } updateUI(); }
 
