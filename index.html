@@ -8,7 +8,7 @@
         * { box-sizing: border-box; }
         :root { --bg-color: #0f172a; --card-color: #1e293b; --text-color: #f8fafc; --accent-color: #38bdf8; --buy-color: #10b981; --sell-color: #ef4444; --ad-color: #8b5cf6; --upgrade-color: #f59e0b; }
         body { font-family: sans-serif; background-color: var(--bg-color); color: var(--text-color); margin: 0; padding: 10px; overflow-x: hidden; }
-        .container { max-width: 600px; margin: 0 auto; background-color: var(--card-color); padding: 15px; border-radius: 12px; width: 100%; }
+        .container { max-width: 600px; margin: 0 auto; background-color: var(--card-color); padding: 15px; border-radius: 12px; width: 100%; margin-bottom: 20px; }
         .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
         .stat-card { background-color: #0f172a; padding: 10px; border-radius: 8px; text-align: center; border: 1px solid #334155; }
         .stat-val { font-size: 1rem; font-weight: bold; color: var(--accent-color); display: block; }
@@ -24,7 +24,6 @@
         .btn-upgrade { background-color: var(--upgrade-color); border: 2px solid #b45309; }
         .module-box { padding: 12px; border: 1px solid #334155; border-radius: 8px; margin-top: 10px; }
         select { padding: 5px; width: 100%; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px; }
-        #adsterra-banner { margin: 15px auto; min-height: 90px; text-align: center; border: 1px dashed #334155; padding: 5px; }
     </style>
 </head>
 <body>
@@ -44,19 +43,6 @@
     <button class="btn btn-upgrade" onclick="upgradeStorage()">📦 Upgrade Storage (Cost: $5,000)</button>
     <button id="adBtn" class="btn btn-ad" onclick="watchAd()">🎥 Watch Ad & Earn $2,000</button>
 
-    <div id="adsterra-banner">
-        <script type="text/javascript">
-            atOptions = {
-                'key' : '6cb28deb56ed227ba08751f4c06e73e8',
-                'format' : 'standard',
-                'height' : 90,
-                'width' : 728,
-                'params' : {}
-            };
-        </script>
-        <script type="text/javascript" src="//www.highperformanceformat.com/6cb28deb56ed227ba08751f4c06e73e8/invoke.js"></script>
-    </div>
-
     <div class="module-box">
         <h3>🏦 Banking</h3>
         <select id="bankAmount"><option value="1000">$1,000</option><option value="5000">$5,000</option></select>
@@ -67,18 +53,24 @@
     </div>
 </div>
 
+<div style="text-align:center; margin-top:20px;">
+    <script type="text/javascript">
+        atOptions = {
+            'key' : '6cb28deb56ed227ba08751f4c06e73e8',
+            'format' : 'standard',
+            'height' : 90,
+            'width' : 728,
+            'params' : {}
+        };
+    </script>
+    <script type="text/javascript" src="//www.highperformanceformat.com/6cb28deb56ed227ba08751f4c06e73e8/invoke.js"></script>
+</div>
+
 <script>
     let gameState = { day: 1, cash: 10000, debt: 0, currentStorage: 0, maxStorage: 20, 
     products: { coffee: { name: "☕", price: 100, qty: 0 }, spices: { name: "🌶️", price: 50, qty: 0 }, fabric: { name: "🧵", price: 300, qty: 0 }, gadgets: { name: "💻", price: 1200, qty: 0 } } };
 
-    function upgradeStorage() { 
-        if(gameState.cash >= 5000) { 
-            gameState.cash -= 5000; 
-            gameState.maxStorage += 10; 
-            updateUI(); 
-        } else { alert("Not enough cash!"); } 
-    }
-    
+    function upgradeStorage() { if(gameState.cash >= 5000) { gameState.cash -= 5000; gameState.maxStorage += 10; updateUI(); } else { alert("Not enough cash!"); } }
     function updateUI() {
         document.getElementById('lblDay').innerText = `${gameState.day}/30`;
         document.getElementById('lblCash').innerText = `$${gameState.cash.toLocaleString()}`;
@@ -94,12 +86,7 @@
         }
         document.getElementById('marketTable').innerHTML = html;
     }
-
-    function watchAd() {
-        window.open('https://www.effectivecpmnetwork.com/qa0r2bb1a?key=086e2069ca27730d6b652050880ae41b', '_blank');
-        gameState.cash += 2000;
-        updateUI();
-    }
+    function watchAd() { window.open('https://www.effectivecpmnetwork.com/qa0r2bb1a?key=086e2069ca27730d6b652050880ae41b', '_blank'); gameState.cash += 2000; updateUI(); }
     function buy(k) { let p = gameState.products[k]; let val = document.getElementById('amt_'+k).value; let amt = (val === 'max') ? (gameState.maxStorage - gameState.currentStorage) : parseInt(val); if (amt > 0 && gameState.cash >= p.price * amt && gameState.currentStorage + amt <= gameState.maxStorage) { gameState.cash -= p.price * amt; p.qty += amt; gameState.currentStorage += amt; updateUI(); } }
     function sell(k) { let p = gameState.products[k]; let val = document.getElementById('amt_'+k).value; let amt = (val === 'max') ? p.qty : parseInt(val); if (amt > 0 && p.qty >= amt) { gameState.cash += p.price * amt; p.qty -= amt; gameState.currentStorage -= amt; updateUI(); } }
     function takeLoan() { let amt = parseInt(document.getElementById('bankAmount').value); if (gameState.debt + amt <= 15000) { gameState.cash += amt; gameState.debt += amt; updateUI(); } }
