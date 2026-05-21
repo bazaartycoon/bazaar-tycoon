@@ -23,7 +23,6 @@
         .btn-ad { background-color: var(--ad-color); color: white; margin-bottom: 5px; }
         .module-box { padding: 12px; border: 1px solid #334155; border-radius: 8px; margin-top: 10px; }
         select { padding: 5px; width: 100%; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px; }
-        
         #adsterra-banner { margin: 15px auto; display: block; min-height: 90px; text-align: center; }
     </style>
 </head>
@@ -41,6 +40,7 @@
     <div class="table-wrapper"><table id="marketTable"></table></div>
 
     <button class="btn btn-action" onclick="nextDay()">Advance to Next Day ➔</button>
+    <button class="btn btn-action" onclick="upgradeStorage()" style="background:#f59e0b;">📦 Upgrade Storage (+$5,000)</button>
     <button id="adBtn" class="btn btn-ad" onclick="watchAd()">🎥 Watch Ad & Earn $2,000</button>
 
     <div id="adsterra-banner">
@@ -67,10 +67,10 @@
 </div>
 
 <script>
-    // Oyun Mantığı
     let gameState = { day: 1, cash: 10000, debt: 0, currentStorage: 0, maxStorage: 20, 
     products: { coffee: { name: "☕", price: 100, qty: 0 }, spices: { name: "🌶️", price: 50, qty: 0 }, fabric: { name: "🧵", price: 300, qty: 0 }, gadgets: { name: "💻", price: 1200, qty: 0 } } };
 
+    function upgradeStorage() { if(gameState.cash >= 5000) { gameState.cash -= 5000; gameState.maxStorage += 10; updateUI(); } else { alert("Not enough cash!"); } }
     function updateUI() {
         document.getElementById('lblDay').innerText = `${gameState.day}/30`;
         document.getElementById('lblCash').innerText = `$${gameState.cash.toLocaleString()}`;
@@ -91,9 +91,7 @@
         window.open('https://www.effectivecpmnetwork.com/qa0r2bb1a?key=086e2069ca27730d6b652050880ae41b', '_blank');
         gameState.cash += 2000;
         updateUI();
-        alert("Success! You watched the ad and earned $2,000.");
     }
-
     function buy(k) { let p = gameState.products[k]; let val = document.getElementById('amt_'+k).value; let amt = (val === 'max') ? (gameState.maxStorage - gameState.currentStorage) : parseInt(val); if (amt > 0 && gameState.cash >= p.price * amt && gameState.currentStorage + amt <= gameState.maxStorage) { gameState.cash -= p.price * amt; p.qty += amt; gameState.currentStorage += amt; updateUI(); } }
     function sell(k) { let p = gameState.products[k]; let val = document.getElementById('amt_'+k).value; let amt = (val === 'max') ? p.qty : parseInt(val); if (amt > 0 && p.qty >= amt) { gameState.cash += p.price * amt; p.qty -= amt; gameState.currentStorage -= amt; updateUI(); } }
     function takeLoan() { let amt = parseInt(document.getElementById('bankAmount').value); if (gameState.debt + amt <= 15000) { gameState.cash += amt; gameState.debt += amt; updateUI(); } }
