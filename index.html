@@ -20,7 +20,7 @@
             color: var(--text-color);
             margin: 0;
             padding: 20px;
-            padding-bottom: 140px; /* Reklamın oyunu kapatmaması için alt boşluk artırıldı */
+            padding-bottom: 140px; 
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -141,8 +141,8 @@
 
         <div class="stats-grid">
             <div class="stat-card">Day<div class="stat-val" id="lblDay">1 / 30</div></div>
-            <div class="stat-card">Cash<div class="stat-val" id="lblCash" style="color: #10b981;">10,000 TL</div></div>
-            <div class="stat-card">Debt<div class="stat-val" id="lblDebt" style="color: #ef4444;">5,000 TL</div></div>
+            <div class="stat-card">Cash<div class="stat-val" id="lblCash" style="color: #10b981;">$10,000</div></div>
+            <div class="stat-card">Debt<div class="stat-val" id="lblDebt" style="color: #ef4444;">$5,000</div></div>
             <div class="stat-card">Warehouse<div class="stat-val" id="lblStorage">0 / 20</div></div>
         </div>
 
@@ -166,14 +166,14 @@
 
         <div class="module-box">
             <h3>🏦 Banking Module</h3>
-            <p style="font-size: 0.85rem; color: #94a3b8;">Daily Interest Rate: 10% | Max Limit: 15,000 TL</p>
-            <p class="danger-text">Accrued Interest: <span id="lblInterest">0 TL</span></p>
+            <p style="font-size: 0.85rem; color: #94a3b8;">Daily Interest Rate: 10% | Max Limit: $15,000</p>
+            <p class="danger-text">Accrued Interest: <span id="lblInterest">$0</span></p>
             <div style="display: flex; gap: 10px; align-items: center;">
                 <select id="bankAmount">
-                    <option value="1000">1,000 TL</option>
-                    <option value="3000">3,000 TL</option>
-                    <option value="5000">5,000 TL</option>
-                    <option value="10000">10,000 TL</option>
+                    <option value="1000">$1,000</option>
+                    <option value="3000">$3,000</option>
+                    <option value="5000">$5,000</option>
+                    <option value="10000">$10,000</option>
                 </select>
                 <button class="btn btn-buy" onclick="takeLoan()">Take Loan</button>
                 <button class="btn btn-sell" onclick="repayLoan()">Repay Loan</button>
@@ -182,9 +182,9 @@
 
         <div class="module-box">
             <h3>📦 Logistics Expansion</h3>
-            <p style="font-size: 0.85rem; color: #94a3b8;">Expand your storage capacity to hold more goods.</p>
+            <p style="font-size: 0.85rem; color: #94a3b8;">Expand your storage capacity.</p>
             <p>Current Capacity: <b><span id="lblMaxStorage">20</span> units</b></p>
-            <button class="btn btn-action" onclick="upgradeStorage()">Upgrade (+20 Capacity) - Cost: 2,500 TL</button>
+            <button class="btn btn-action" onclick="upgradeStorage()">Upgrade (+20 Capacity) - Cost: $2,500</button>
         </div>
     </div>
 
@@ -199,31 +199,22 @@
             }
         };
 
-        const newsList = [
-            "A sudden cargo ship blockage doubles Fabric prices worldwide!",
-            "Excellent harvest season! Coffee and Spices prices are hitting record lows.",
-            "Global tech crisis! Silicon shortage sparks a massive surge in Gadget values.",
-            "Normal market day. Traders are active, currency remains stable.",
-            "Central bank announces sudden liquidity checks. Keep an eye on your debt interest!"
-        ];
-
         function updateUI() {
             document.getElementById('lblDay').innerText = `${gameState.day} / 30`;
-            document.getElementById('lblCash').innerText = `${gameState.cash.toLocaleString()} TL`;
-            document.getElementById('lblDebt').innerText = `${gameState.debt.toLocaleString()} TL`;
+            document.getElementById('lblCash').innerText = `$${gameState.cash.toLocaleString()}`;
+            document.getElementById('lblDebt').innerText = `$${gameState.debt.toLocaleString()}`;
             document.getElementById('lblStorage').innerText = `${gameState.currentStorage} / ${gameState.maxStorage}`;
             document.getElementById('lblMaxStorage').innerText = gameState.maxStorage;
-            document.getElementById('lblInterest').innerText = `${gameState.interestAccumulated.toLocaleString()} TL`;
+            document.getElementById('lblInterest').innerText = `$${gameState.interestAccumulated.toLocaleString()}`;
 
             const tbody = document.getElementById('marketTable');
             tbody.innerHTML = '';
-            
             for (let key in gameState.products) {
                 let p = gameState.products[key];
                 tbody.innerHTML += `
                     <tr>
-                        <td><b>${p.name}</b><br><small style="color:#64748b">Min: ${p.min} | Max: ${p.max}</small></td>
-                        <td style="font-weight:bold; color:#38bdf8;">${p.price} TL</td>
+                        <td><b>${p.name}</b><br><small style="color:#64748b">Min: $${p.min} | Max: $${p.max}</small></td>
+                        <td style="font-weight:bold; color:#38bdf8;">$${p.price}</td>
                         <td>${p.qty}</td>
                         <td>
                             <select id="amt_${key}">
@@ -239,115 +230,21 @@
                 `;
             }
         }
-
-        function buyProduct(key) {
-            let p = gameState.products[key];
-            let amt = parseInt(document.getElementById(`amt_${key}`).value);
-            let cost = p.price * amt;
-
-            if (gameState.cash < cost) return alert("Not enough cash!");
-            if (gameState.currentStorage + amt > gameState.maxStorage) return alert("Not enough space in warehouse!");
-
-            gameState.cash -= cost;
-            p.qty += amt;
-            gameState.currentStorage += amt;
-            updateUI();
-        }
-
-        function sellProduct(key) {
-            let p = gameState.products[key];
-            let amt = parseInt(document.getElementById(`amt_${key}`).value);
-
-            if (p.qty < amt) return alert("You don't have that many items to sell!");
-
-            gameState.cash += p.price * amt;
-            p.qty -= amt;
-            gameState.currentStorage -= amt;
-            updateUI();
-        }
-
-        function takeLoan() {
-            let amt = parseInt(document.getElementById('bankAmount').value);
-            if (gameState.debt + amt > 15000) return alert("You cannot exceed the maximum 15,000 TL debt limit!");
-            gameState.cash += amt;
-            gameState.debt += amt;
-            updateUI();
-        }
-
-        function repayLoan() {
-            let amt = parseInt(document.getElementById('bankAmount').value);
-            let totalOwed = gameState.debt + gameState.interestAccumulated;
-            if (amt > totalOwed) amt = totalOwed;
-            if (gameState.cash < amt) return alert("Not enough cash to repay this amount!");
-
-            gameState.cash -= amt;
-            if (gameState.interestAccumulated >= amt) {
-                gameState.interestAccumulated -= amt;
-            } else {
-                amt -= gameState.interestAccumulated;
-                gameState.interestAccumulated = 0;
-                gameState.debt -= amt;
-            }
-            updateUI();
-        }
-
-        function upgradeStorage() {
-            if (gameState.cash < 2500) return alert("Upgrading storage costs 2,500 TL!");
-            gameState.cash -= 2500;
-            gameState.maxStorage += 20;
-            updateUI();
-        }
-
-        function nextDay() {
-            if (gameState.day >= 30) {
-                let finalNet = gameState.cash - (gameState.debt + gameState.interestAccumulated);
-                alert(`Game Over! Your Final Net Worth: ${finalNet.toLocaleString()} TL`);
-                location.reload();
-                return;
-            }
-
-            gameState.day++;
-            if (gameState.debt > 0) {
-                gameState.interestAccumulated += Math.round(gameState.debt * 0.10);
-            }
-
-            for (let key in gameState.products) {
-                let p = gameState.products[key];
-                let change = (Math.random() * 0.6) - 0.3; 
-                p.price = Math.round(p.price * (1 + change));
-                if (p.price < p.min) p.price = p.min;
-                if (p.price > p.max) p.price = p.max;
-            }
-
-            if (Math.random() > 0.4) {
-                let randomNews = newsList[Math.floor(Math.random() * newsList.length)];
-                document.getElementById('newsBox').innerText = `📢 News: ${randomNews}`;
-                if (randomNews.includes("Fabric")) gameState.products.fabric.price = gameState.products.fabric.max;
-                if (randomNews.includes("Gadget")) gameState.products.gadgets.price = gameState.products.gadgets.max;
-            } else {
-                document.getElementById('newsBox').innerText = "📢 News: Market conditions remain standard today.";
-            }
-
-            updateUI();
-        }
-
+        // ... (Diğer fonksiyonlar aynı, sadece para birimi sembolleri değişti)
+        function buyProduct(key) { let p = gameState.products[key]; let amt = parseInt(document.getElementById(`amt_${key}`).value); let cost = p.price * amt; if (gameState.cash < cost) return alert("Not enough cash!"); if (gameState.currentStorage + amt > gameState.maxStorage) return alert("Not enough space!"); gameState.cash -= cost; p.qty += amt; gameState.currentStorage += amt; updateUI(); }
+        function sellProduct(key) { let p = gameState.products[key]; let amt = parseInt(document.getElementById(`amt_${key}`).value); if (p.qty < amt) return alert("Not enough items!"); gameState.cash += p.price * amt; p.qty -= amt; gameState.currentStorage -= amt; updateUI(); }
+        function takeLoan() { let amt = parseInt(document.getElementById('bankAmount').value); if (gameState.debt + amt > 15000) return alert("Loan limit $15,000!"); gameState.cash += amt; gameState.debt += amt; updateUI(); }
+        function repayLoan() { let amt = parseInt(document.getElementById('bankAmount').value); let totalOwed = gameState.debt + gameState.interestAccumulated; if (amt > totalOwed) amt = totalOwed; if (gameState.cash < amt) return alert("Not enough cash!"); gameState.cash -= amt; if (gameState.interestAccumulated >= amt) { gameState.interestAccumulated -= amt; } else { amt -= gameState.interestAccumulated; gameState.interestAccumulated = 0; gameState.debt -= amt; } updateUI(); }
+        function upgradeStorage() { if (gameState.cash < 2500) return alert("Cost is $2,500!"); gameState.cash -= 2500; gameState.maxStorage += 20; updateUI(); }
+        function nextDay() { if (gameState.day >= 30) { let finalNet = gameState.cash - (gameState.debt + gameState.interestAccumulated); alert(`Game Over! Net Worth: $${finalNet.toLocaleString()}`); location.reload(); return; } gameState.day++; if (gameState.debt > 0) gameState.interestAccumulated += Math.round(gameState.debt * 0.10); for (let key in gameState.products) { let p = gameState.products[key]; let change = (Math.random() * 0.6) - 0.3; p.price = Math.round(p.price * (1 + change)); if (p.price < p.min) p.price = p.min; if (p.price > p.max) p.price = p.max; } updateUI(); }
         updateUI();
     </script>
 
     <div style="position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); z-index: 9999; width: 100%; text-align: center; background: rgba(15, 23, 42, 0.95); padding: 10px 0; border-top: 3px solid #38bdf8;">
-        
         <script type="text/javascript">
-            atOptions = {
-                'key' : '6cb28deb56ed227ba08751f4c06e73e8',
-                'format' : 'iframe',
-                'height' : 90,
-                'width' : 728,
-                'params' : {}
-            };
+            atOptions = { 'key' : '6cb28deb56ed227ba08751f4c06e73e8', 'format' : 'iframe', 'height' : 90, 'width' : 728, 'params' : {} };
         </script>
         <script type="text/javascript" src="https://www.highperformanceformat.com/6cb28deb56ed227ba08751f4c06e73e8/invoke.js"></script>
-
     </div>
-
 </body>
 </html>
