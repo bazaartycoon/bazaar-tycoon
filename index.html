@@ -24,14 +24,7 @@
         .module-box { padding: 12px; border: 1px solid #334155; border-radius: 8px; margin-top: 10px; }
         select { padding: 5px; width: 100%; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px; }
         
-        #banner-container { 
-            width: 100%; 
-            display: flex; 
-            justify-content: center; 
-            margin: 15px 0; 
-            min-height: 90px; 
-            overflow: hidden; 
-        }
+        #adsterra-banner { margin: 15px auto; display: block; min-height: 90px; text-align: center; }
     </style>
 </head>
 <body>
@@ -50,17 +43,17 @@
     <button class="btn btn-action" onclick="nextDay()">Advance to Next Day ➔</button>
     <button id="adBtn" class="btn btn-ad" onclick="watchAd()">🎥 Watch Ad & Earn $2,000</button>
 
-    <div id="banner-container">
-        <script>
+    <div id="adsterra-banner">
+        <script type="text/javascript">
             atOptions = {
                 'key' : '6cb28deb56ed227ba08751f4c06e73e8',
-                'format' : 'iframe',
+                'format' : 'standard',
                 'height' : 90,
                 'width' : 728,
                 'params' : {}
             };
         </script>
-        <script src="https://www.highperformanceformat.com/6cb28deb56ed227ba08751f4c06e73e8/invoke.js"></script>
+        <script type="text/javascript" src="//www.highperformanceformat.com/6cb28deb56ed227ba08751f4c06e73e8/invoke.js"></script>
     </div>
 
     <div class="module-box">
@@ -74,6 +67,7 @@
 </div>
 
 <script>
+    // Oyun Mantığı
     let gameState = { day: 1, cash: 10000, debt: 0, currentStorage: 0, maxStorage: 20, 
     products: { coffee: { name: "☕", price: 100, qty: 0 }, spices: { name: "🌶️", price: 50, qty: 0 }, fabric: { name: "🧵", price: 300, qty: 0 }, gadgets: { name: "💻", price: 1200, qty: 0 } } };
 
