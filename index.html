@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Bazaar Tycoon - Mobile Edition</title>
+    <title>Bazaar Tycoon</title>
     <style>
         :root { --bg-color: #0f172a; --card-color: #1e293b; --text-color: #f8fafc; --accent-color: #38bdf8; --buy-color: #10b981; --sell-color: #ef4444; }
         body { font-family: sans-serif; background-color: var(--bg-color); color: var(--text-color); margin: 0; padding: 10px; }
@@ -14,10 +14,10 @@
         .stat-val { font-size: 1.1rem; font-weight: bold; color: var(--accent-color); }
         table { width: 100%; border-collapse: collapse; margin-bottom: 15px; font-size: 0.85rem; }
         th, td { padding: 8px 4px; text-align: center; border-bottom: 1px solid #334155; }
-        .btn { padding: 10px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }
+        .btn { padding: 8px 12px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.8rem; }
         .btn-buy { background-color: var(--buy-color); color: white; }
         .btn-sell { background-color: var(--sell-color); color: white; }
-        .btn-action { background-color: var(--accent-color); color: #0f172a; width: 100%; }
+        .btn-action { background-color: var(--accent-color); color: #0f172a; width: 100%; padding: 12px; }
         .module-box { padding: 15px; border: 1px solid #334155; border-radius: 8px; margin-top: 10px; }
         select { padding: 8px; width: 100%; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px; margin-bottom: 5px; }
     </style>
@@ -64,12 +64,12 @@
         document.getElementById('lblStorage').innerText = `${gameState.currentStorage}/${gameState.maxStorage}`;
         document.getElementById('lblMaxStorage').innerText = gameState.maxStorage;
         
-        let html = '<tr><th>P</th><th>Price</th><th>Qty</th><th>Action</th></tr>';
+        let html = '<tr><th>P</th><th>Price</th><th>Qty</th><th>Amount</th><th>Action</th></tr>';
         for (let k in gameState.products) {
             let p = gameState.products[k];
             html += `<tr><td>${p.name}</td><td>$${p.price}</td><td>${p.qty}</td>
-            <td><select id="amt_${k}"><option value="1">1</option><option value="5">5</option><option value="20">20</option><option value="max">Max</option></select>
-            <button class="btn-buy" onclick="buy('${k}')">B</button> <button class="btn-sell" onclick="sell('${k}')">S</button></td></tr>`;
+            <td><select id="amt_${k}"><option value="1">1</option><option value="5">5</option><option value="20">20</option><option value="max">Max</option></select></td>
+            <td><button class="btn btn-buy" onclick="buy('${k}')">Buy</button> <button class="btn btn-sell" onclick="sell('${k}')">Sell</button></td></tr>`;
         }
         document.getElementById('marketTable').innerHTML = html;
     }
@@ -102,10 +102,5 @@
 
     updateUI();
 </script>
-    <div id="ad-container" style="margin-top: 20px; text-align: center; min-height: 90px; border: 1px dashed #334155; padding: 10px;">
-    <script type="text/javascript">
-        // Adsterra'dan aldığınız yeni bir 'Banner' veya 'Social Bar' kodu buraya gelmeli
-    </script>
-</div>
 </body>
 </html>
