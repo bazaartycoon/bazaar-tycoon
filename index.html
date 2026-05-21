@@ -20,9 +20,18 @@
         .btn-buy { background-color: var(--buy-color); color: white; padding: 4px 8px; font-size: 0.7rem; }
         .btn-sell { background-color: var(--sell-color); color: white; padding: 4px 8px; font-size: 0.7rem; }
         .btn-action { background-color: var(--accent-color); color: #0f172a; }
-        .btn-ad { background-color: var(--ad-color); color: white; }
+        .btn-ad { background-color: var(--ad-color); color: white; margin-bottom: 5px; }
         .module-box { padding: 12px; border: 1px solid #334155; border-radius: 8px; margin-top: 10px; }
         select { padding: 5px; width: 100%; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px; }
+        
+        #banner-container { 
+            width: 100%; 
+            display: flex; 
+            justify-content: center; 
+            margin: 15px 0; 
+            min-height: 90px; 
+            overflow: hidden; 
+        }
     </style>
 </head>
 <body>
@@ -39,7 +48,20 @@
     <div class="table-wrapper"><table id="marketTable"></table></div>
 
     <button class="btn btn-action" onclick="nextDay()">Advance to Next Day ➔</button>
-    <button id="adBtn" class="btn btn-ad" onclick="watchAd()">🎥 Watch Ad for $2,000</button>
+    <button id="adBtn" class="btn btn-ad" onclick="watchAd()">🎥 Watch Ad & Earn $2,000</button>
+
+    <div id="banner-container">
+        <script>
+            atOptions = {
+                'key' : '6cb28deb56ed227ba08751f4c06e73e8',
+                'format' : 'iframe',
+                'height' : 90,
+                'width' : 728,
+                'params' : {}
+            };
+        </script>
+        <script src="https://www.highperformanceformat.com/6cb28deb56ed227ba08751f4c06e73e8/invoke.js"></script>
+    </div>
 
     <div class="module-box">
         <h3>🏦 Banking</h3>
@@ -75,6 +97,7 @@
         window.open('https://www.effectivecpmnetwork.com/qa0r2bb1a?key=086e2069ca27730d6b652050880ae41b', '_blank');
         gameState.cash += 2000;
         updateUI();
+        alert("Success! You watched the ad and earned $2,000.");
     }
 
     function buy(k) { let p = gameState.products[k]; let val = document.getElementById('amt_'+k).value; let amt = (val === 'max') ? (gameState.maxStorage - gameState.currentStorage) : parseInt(val); if (amt > 0 && gameState.cash >= p.price * amt && gameState.currentStorage + amt <= gameState.maxStorage) { gameState.cash -= p.price * amt; p.qty += amt; gameState.currentStorage += amt; updateUI(); } }
