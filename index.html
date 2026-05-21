@@ -6,32 +6,26 @@
     <title>Bazaar Tycoon - Global Edition</title>
     <style>
         :root { --bg-color: #0f172a; --card-color: #1e293b; --text-color: #f8fafc; --accent-color: #38bdf8; --buy-color: #10b981; --sell-color: #ef4444; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg-color); color: var(--text-color); margin: 0; padding: 20px; padding-bottom: 150px; display: flex; flex-direction: column; align-items: center; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background-color: var(--bg-color); color: var(--text-color); margin: 0; padding: 20px; padding-bottom: 150px; display: flex; flex-direction: column; align-items: center; }
         .container { max-width: 800px; width: 100%; background-color: var(--card-color); padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         .header { text-align: center; border-bottom: 2px solid #334155; padding-bottom: 15px; margin-bottom: 20px; }
-        .news-ticker { background-color: #7c2d12; color: #fdba74; padding: 10px; border-radius: 6px; margin-bottom: 20px; font-weight: bold; border-left: 5px solid #ea580c; }
         .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-bottom: 20px; }
         .stat-card { background-color: #0f172a; padding: 12px; border-radius: 8px; text-align: center; border: 1px solid #334155; }
         .stat-val { font-size: 1.25rem; font-weight: bold; color: var(--accent-color); margin-top: 5px; }
         table { width: 100%; border-collapse: collapse; margin-bottom: 25px; }
         th, td { padding: 12px; text-align: center; border-bottom: 1px solid #334155; }
-        .btn { padding: 8px 16px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; transition: background 0.2s; }
+        .btn { padding: 8px 16px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }
         .btn-buy { background-color: var(--buy-color); color: white; }
         .btn-sell { background-color: var(--sell-color); color: white; }
         .btn-action { background-color: var(--accent-color); color: #0f172a; }
         .module-box { background-color: #1e293b; border: 1px solid #334155; padding: 15px; border-radius: 8px; }
-        .danger-text { color: #f87171; font-weight: bold; }
+        select { padding: 5px; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <div class="header">
-        <h2>Bazaar Tycoon v1.2</h2>
-        <p>Turn 10K into a fortune.</p>
-    </div>
-
-    <div class="news-ticker" id="newsBox">📢 Market conditions are stable today.</div>
+    <div class="header"><h2>Bazaar Tycoon v1.2</h2></div>
 
     <div class="stats-grid">
         <div class="stat-card">Day<div class="stat-val" id="lblDay">1 / 30</div></div>
@@ -66,7 +60,7 @@
 
 <script>
     let gameState = { day: 1, cash: 10000, debt: 5000, interestAccumulated: 0, currentStorage: 0, maxStorage: 20, 
-    products: { coffee: { name: "☕ Coffee", price: 100, min: 25, max: 280, qty: 0 }, spices: { name: "🌶️ Spices", price: 50, min: 10, max: 140, qty: 0 }, fabric: { name: "🧵 Fabric", price: 300, min: 90, max: 750, qty: 0 }, gadgets: { name: "💻 Gadgets", price: 1200, min: 450, max: 3200, qty: 0 } } };
+    products: { coffee: { name: "☕ Coffee", price: 100, qty: 0 }, spices: { name: "🌶️ Spices", price: 50, qty: 0 }, fabric: { name: "🧵 Fabric", price: 300, qty: 0 }, gadgets: { name: "💻 Gadgets", price: 1200, qty: 0 } } };
 
     function updateUI() {
         document.getElementById('lblDay').innerText = `${gameState.day} / 30`;
@@ -76,20 +70,33 @@
         document.getElementById('lblMaxStorage').innerText = gameState.maxStorage;
         document.getElementById('lblInterest').innerText = `$${gameState.interestAccumulated.toLocaleString()}`;
         
-        let html = '<tr><th>Product</th><th>Price</th><th>Stock</th><th>Action</th></tr>';
-        for (let key in gameState.products) {
-            let p = gameState.products[key];
-            html += `<tr><td><b>${p.name}</b></td><td style="color:#38bdf8">$${p.price}</td><td>${p.qty}</td><td><button class="btn btn-buy" onclick="buy('${key}')">Buy</button> <button class="btn btn-sell" onclick="sell('${key}')">Sell</button></td></tr>`;
+        let html = '<tr><th>Product</th><th>Price</th><th>Stock</th><th>Amount</th><th>Action</th></tr>';
+        for (let k in gameState.products) {
+            let p = gameState.products[k];
+            html += `<tr><td><b>${p.name}</b></td><td style="color:#38bdf8">$${p.price}</td><td>${p.qty}</td>
+            <td><select id="amt_${k}"><option value="1">1</option><option value="5">5</option><option value="10">10</option></select></td>
+            <td><button class="btn btn-buy" onclick="buy('${k}')">Buy</button> <button class="btn btn-sell" onclick="sell('${k}')">Sell</button></td></tr>`;
         }
         document.getElementById('marketTable').innerHTML = html;
     }
 
-    function buy(k) { let p = gameState.products[k]; if (gameState.cash >= p.price && gameState.currentStorage < gameState.maxStorage) { gameState.cash -= p.price; p.qty++; gameState.currentStorage++; updateUI(); } }
-    function sell(k) { let p = gameState.products[k]; if (p.qty > 0) { gameState.cash += p.price; p.qty--; gameState.currentStorage--; updateUI(); } }
+    function buy(k) { 
+        let p = gameState.products[k]; 
+        let amt = parseInt(document.getElementById('amt_'+k).value);
+        if (gameState.cash >= p.price * amt && gameState.currentStorage + amt <= gameState.maxStorage) { 
+            gameState.cash -= p.price * amt; p.qty += amt; gameState.currentStorage += amt; updateUI(); 
+        } 
+    }
+    function sell(k) { 
+        let p = gameState.products[k]; 
+        let amt = parseInt(document.getElementById('amt_'+k).value);
+        if (p.qty >= amt) { gameState.cash += p.price * amt; p.qty -= amt; gameState.currentStorage -= amt; updateUI(); } 
+    }
+    // ... (Diğer fonksiyonlar: takeLoan, repayLoan, upgradeStorage, nextDay aynı kalabilir)
     function takeLoan() { let amt = parseInt(document.getElementById('bankAmount').value); gameState.cash += amt; gameState.debt += amt; updateUI(); }
     function repayLoan() { let amt = parseInt(document.getElementById('bankAmount').value); gameState.cash -= amt; gameState.debt -= amt; updateUI(); }
     function upgradeStorage() { if (gameState.cash >= 2500) { gameState.cash -= 2500; gameState.maxStorage += 20; updateUI(); } }
-    function nextDay() { gameState.day++; for (let k in gameState.products) { let p = gameState.products[k]; p.price = Math.round(p.price * (0.7 + Math.random() * 0.6)); } updateUI(); }
+    function nextDay() { gameState.day++; for (let k in gameState.products) { gameState.products[k].price = Math.round(gameState.products[k].price * (0.8 + Math.random() * 0.4)); } updateUI(); }
 
     updateUI();
 </script>
