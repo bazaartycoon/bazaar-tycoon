@@ -6,146 +6,114 @@
     <title>Bazaar Tycoon</title>
     <style>
         :root { --bg: #0b1120; --card: #1e293b; --accent: #38bdf8; --text: #f1f5f9; --buy: #059669; --sell: #e11d48; --btn: #4f46e5; --upgrade: #f59e0b; }
-        body { font-family: sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 15px; }
+        body { font-family: sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 10px; }
         .container { max-width: 500px; margin: 0 auto; }
         
-        /* Güzelleştirilmiş Başlık */
-        .header { background: var(--card); padding: 20px; border-radius: 12px; margin-bottom: 15px; text-align: center; border: 1px solid #334155; }
-        .header h1 { margin: 0; font-size: 1.8rem; color: var(--accent); }
-        .header p { margin: 5px 0 0; opacity: 0.8; font-size: 0.9rem; }
+        .header { background: var(--card); padding: 15px; border-radius: 12px; margin-bottom: 10px; text-align: center; border: 1px solid #334155; }
+        .header h1 { margin: 0; font-size: 1.5rem; color: var(--accent); }
 
-        /* Güzelleştirilmiş Stats Bölümü */
-        .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
-        .stat-card { background: var(--card); padding: 15px; border-radius: 12px; text-align: center; border: 1px solid #334155; }
-        .stat-val { display: block; font-size: 1.2rem; font-weight: bold; color: var(--accent); }
-        .debt-val { display: block; font-size: 1rem; font-weight: bold; color: var(--sell); }
+        .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+        .stat-card { background: var(--card); padding: 10px; border-radius: 8px; text-align: center; border: 1px solid #334155; font-size: 0.9rem; }
+        .stat-val { display: block; font-size: 1.1rem; font-weight: bold; color: var(--accent); }
 
-        /* Güzelleştirilmiş Malzeme Listesi */
-        .market-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px; }
-        .market-item { background: var(--card); padding: 15px; border-radius: 12px; border: 1px solid #334155; display: flex; justify-content: space-between; align-items: center; transition: 0.2s; }
-        .market-item:hover { border-color: var(--accent); }
-        .item-name { display: flex; align-items: center; gap: 8px; font-size: 1.1rem; }
-        .item-actions { display: flex; gap: 8px; align-items: center; }
-        .owned-info { color: #64748b; font-size: 0.8rem; text-align: right; margin-right: 10px; }
+        .market-item { background: var(--card); padding: 10px; border-radius: 8px; border: 1px solid #334155; margin-bottom: 8px; }
+        .item-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .qty-selector { display: flex; gap: 5px; justify-content: center; }
+        
+        .btn { border: none; padding: 8px; border-radius: 4px; color: white; font-weight: bold; cursor: pointer; font-size: 0.8rem; }
+        .btn-qty { background: #475569; }
+        .btn-buy { background: var(--buy); flex: 1; }
+        .btn-sell { background: var(--sell); flex: 1; }
+        .btn-full { width: 100%; padding: 12px; margin-top: 5px; font-weight: bold; }
 
-        .btn { border: none; padding: 10px 15px; border-radius: 6px; color: white; font-weight: bold; cursor: pointer; transition: 0.2s; font-size: 0.9rem; }
-        .btn-buy { background: var(--buy); }
-        .btn-sell { background: var(--sell); }
-        .btn-full { width: 100%; padding: 15px; margin-top: 8px; font-size: 1rem; text-transform: uppercase; }
-
-        input { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #475569; background: #0f172a; color: white; margin-bottom: 10px; }
-        .input-group { background: var(--card); padding: 15px; border-radius: 12px; margin-top: 15px; border: 1px solid #334155; }
+        .input-group { background: var(--card); padding: 12px; border-radius: 8px; margin-top: 10px; border: 1px solid #334155; }
+        .banner { background: #1e293b; padding: 10px; text-align: center; border-radius: 8px; margin-top: 10px; border: 1px solid #334155; font-size: 0.8rem; color: #94a3b8; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <div class="header">
-        <h1>Bazaar Tycoon</h1>
-        <p>Buy low, sell high, and become the Master of the Bazaar!</p>
-    </div>
+    <div class="header"><h1>Bazaar Tycoon</h1></div>
     
     <div class="stats">
         <div class="stat-card">Day <span id="lblDay" class="stat-val">1/30</span></div>
         <div class="stat-card">Cash <span id="lblCash" class="stat-val">$10,000</span></div>
-        <div class="stat-card" style="grid-column: span 2;">Bank Debt <span id="lblDebt" class="debt-val">$25,000</span></div>
+        <div class="stat-card">Debt <span id="lblDebt" class="stat-val">$25,000</span></div>
+        <div class="stat-card">Storage <span id="lblStorage" class="stat-val">0/100</span></div>
     </div>
 
-    <div id="marketTable" class="market-list"></div>
+    <div id="marketTable"></div>
 
     <button class="btn btn-full" style="background:var(--btn);" onclick="nextDay()">Next Day ➔</button>
-    <button class="btn btn-full" style="background:var(--upgrade); margin-top: 5px;" onclick="alert('Depo yakında eklenecek!')">Warehouse</button>
-    <button class="btn btn-full" style="background:var(--accent); margin-top: 5px;" onclick="watchAd()">Watch Ad to Earn +$100</button>
+    <button class="btn btn-full" style="background:var(--upgrade);" onclick="alert('Warehouse Upgrade!')">📦 Warehouse Upgrade</button>
+    <button class="btn btn-full" style="background:var(--accent);" onclick="watchAd()">📺 Watch Ad (+$1000)</button>
 
     <div class="input-group">
-        <h3>🏆 Save Your Score</h3>
-        <input type="text" id="playerName" placeholder="Enter your name">
+        <h3>🏆 Save Score</h3>
+        <input type="text" id="playerName" placeholder="Name">
         <button class="btn btn-buy" style="width:100%;" onclick="saveScore()">Save Score</button>
     </div>
 
     <div class="input-group">
-        <h3>🥇 Global Leaderboard</h3>
-        <div id="leaderboard">Loading...</div>
+        <h3>🥇 Leaderboard</h3>
+        <div id="leaderboard" style="font-size: 0.9rem;">Loading...</div>
     </div>
+
+    <div class="banner">© 2026 Bazaar Tycoon - All Rights Reserved</div>
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
     import { getDatabase, ref, push, onValue, query, orderByChild, limitToLast } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-database.js";
 
-    // Oyun mantığını geri getirdik
-    const gameState = { 
-        day: 1, 
-        cash: 10000, 
-        debt: 25000,
-        products: { 
-            coffee: { name: "☕ Coffee", price: 50, qty: 0, default: 50 }, 
-            textiles: { name: "👕 Textiles", price: 200, qty: 0, default: 200 },
-            gadgets: { name: "💻 Gadgets", price: 800, qty: 0, default: 800 },
-            electronics: { name: "📱 Electronics", price: 2500, qty: 0, default: 2500 },
-            oil: { name: "🛢️ Oil", price: 6000, qty: 0, default: 6000 },
-            gold: { name: "💰 Gold", price: 15000, qty: 0, default: 15000 }
-        }
-    };
+    const gameState = { day: 1, cash: 10000, debt: 25000, storage: 0, maxStorage: 100, buyQty: 1, products: { 
+        coffee: { name: "☕ Coffee", price: 50, qty: 0 }, textiles: { name: "👕 Textiles", price: 200, qty: 0 },
+        gadgets: { name: "💻 Gadgets", price: 800, qty: 0 }, electronics: { name: "📱 Electronics", price: 2500, qty: 0 }
+    }};
 
-    const db = getDatabase(initializeApp({
-        apiKey: "AIzaSyD7ZocVE8OyDbVSwE668zpgxeUJH1CLIsU",
-        databaseURL: "https://bazaartycoon-e8fad-default-rtdb.asia-southeast1.firebasedatabase.app",
-        projectId: "bazaartycoon-e8fad"
-    }));
+    const db = getDatabase(initializeApp({ apiKey: "AIzaSyD7ZocVE8OyDbVSwE668zpgxeUJH1CLIsU", databaseURL: "https://bazaartycoon-e8fad-default-rtdb.asia-southeast1.firebasedatabase.app", projectId: "bazaartycoon-e8fad" }));
 
-    // Otomatik İsim Yönetimi (Local Storage)
     let savedName = localStorage.getItem("tycoon_name") || "Trader_" + Math.floor(Math.random() * 10000);
     localStorage.setItem("tycoon_name", savedName);
     document.getElementById('playerName').value = savedName;
 
-    window.watchAd = () => { gameState.cash += 100; updateUI(); alert("Reklam izlendi, +$100 kazanıldı!"); }
-
-    window.nextDay = () => {
-        if(gameState.day < 30) {
-            gameState.day++;
-            Object.values(gameState.products).forEach(p => p.price = Math.floor(Math.random() * p.default) + Math.floor(p.default * 0.3));
-            updateUI();
-        } else alert("Game Over! Save your final score.");
-    };
-
-    window.saveScore = () => {
-        const name = document.getElementById('playerName').value;
-        localStorage.setItem("tycoon_name", name);
-        push(ref(db, 'scores'), { name: name, score: gameState.cash, timestamp: Date.now() });
-        alert("Saved as " + name);
-    };
+    window.watchAd = () => { gameState.cash += 1000; updateUI(); alert("+$1000 earned!"); }
+    window.nextDay = () => { gameState.day++; Object.values(gameState.products).forEach(p => p.price = Math.floor(Math.random() * 500) + 50); updateUI(); };
+    window.saveScore = () => { push(ref(db, 'scores'), { name: document.getElementById('playerName').value, score: gameState.cash }); alert("Saved!"); };
+    window.setQty = (n) => { gameState.buyQty = n; updateUI(); };
 
     function updateUI() {
         document.getElementById('lblDay').innerText = `${gameState.day}/30`;
         document.getElementById('lblCash').innerText = `$${gameState.cash.toLocaleString()}`;
         document.getElementById('lblDebt').innerText = `$${gameState.debt.toLocaleString()}`;
+        document.getElementById('lblStorage').innerText = `${gameState.storage}/${gameState.maxStorage}`;
         
         let html = "";
         for(let k in gameState.products) {
             let p = gameState.products[k];
             html += `<div class="market-item">
-                <div class="item-name">${p.name} ($${p.price})</div>
-                <div class="item-actions">
-                    <span class="owned-info">[Owned: ${p.qty}]</span>
-                    <button class="btn btn-buy" onclick="buy('${k}')">Buy</button>
-                    <button class="btn btn-sell" onclick="sell('${k}')">Sell</button>
+                <div class="item-row"><strong>${p.name} ($${p.price})</strong> <span>Owned: ${p.qty}</span></div>
+                <div class="qty-selector">
+                    <button class="btn btn-qty" onclick="setQty(1)">1</button>
+                    <button class="btn btn-qty" onclick="setQty(5)">5</button>
+                    <button class="btn btn-qty" onclick="setQty(10)">10</button>
+                    <button class="btn btn-qty" onclick="setQty(999)">MAX</button>
+                </div>
+                <div class="item-row" style="margin-top:8px">
+                    <button class="btn btn-buy" onclick="buy('${k}')">Buy ${gameState.buyQty}</button>
+                    <button class="btn btn-sell" onclick="sell('${k}')">Sell ${gameState.buyQty}</button>
                 </div>
             </div>`;
         }
         document.getElementById('marketTable').innerHTML = html;
     }
 
-    window.buy = (k) => { if(gameState.cash >= gameState.products[k].price) { gameState.cash -= gameState.products[k].price; gameState.products[k].qty++; updateUI(); } };
-    window.sell = (k) => { if(gameState.products[k].qty > 0) { gameState.cash += gameState.products[k].price; gameState.products[k].qty--; updateUI(); } };
+    window.buy = (k) => { let cost = gameState.products[k].price * gameState.buyQty; if(gameState.cash >= cost) { gameState.cash -= cost; gameState.products[k].qty += gameState.buyQty; gameState.storage += gameState.buyQty; updateUI(); } };
+    window.sell = (k) => { if(gameState.products[k].qty >= gameState.buyQty) { gameState.cash += gameState.products[k].price * gameState.buyQty; gameState.products[k].qty -= gameState.buyQty; gameState.storage -= gameState.buyQty; updateUI(); } };
 
-    onValue(query(ref(db, 'scores'), orderByChild('score'), limitToLast(5)), (snapshot) => {
-        let html = "";
-        snapshot.forEach(child => { 
-            let val = child.val();
-            html += `<p>${val.name}: <b>$${val.score.toLocaleString()}</b></p>`;
-        });
-        document.getElementById('leaderboard').innerHTML = html || "No scores yet.";
+    onValue(query(ref(db, 'scores'), orderByChild('score'), limitToLast(5)), (s) => {
+        let html = ""; s.forEach(c => html += `<p>${c.val().name}: $${c.val().score.toLocaleString()}</p>`);
+        document.getElementById('leaderboard').innerHTML = html;
     });
 
     updateUI();
