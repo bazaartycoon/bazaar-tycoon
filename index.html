@@ -5,39 +5,65 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bazaar Tycoon</title>
     <style>
-        :root { --bg: #0b1120; --card: #1e293b; --accent: #38bdf8; --text: #f1f5f9; --buy: #059669; --sell: #e11d48; --btn: #4f46e5; }
+        :root { --bg: #0b1120; --card: #1e293b; --accent: #38bdf8; --text: #f1f5f9; --buy: #059669; --sell: #e11d48; --btn: #4f46e5; --upgrade: #f59e0b; }
         body { font-family: sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 15px; }
         .container { max-width: 500px; margin: 0 auto; }
-        .card { background: var(--card); padding: 12px; border-radius: 12px; margin-bottom: 8px; border: 1px solid #334155; display: flex; justify-content: space-between; align-items: center; }
+        
+        /* Güzelleştirilmiş Başlık */
+        .header { background: var(--card); padding: 20px; border-radius: 12px; margin-bottom: 15px; text-align: center; border: 1px solid #334155; }
+        .header h1 { margin: 0; font-size: 1.8rem; color: var(--accent); }
+        .header p { margin: 5px 0 0; opacity: 0.8; font-size: 0.9rem; }
+
+        /* Güzelleştirilmiş Stats Bölümü */
         .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
         .stat-card { background: var(--card); padding: 15px; border-radius: 12px; text-align: center; border: 1px solid #334155; }
         .stat-val { display: block; font-size: 1.2rem; font-weight: bold; color: var(--accent); }
-        .btn { border: none; padding: 8px 12px; border-radius: 6px; color: white; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .debt-val { display: block; font-size: 1rem; font-weight: bold; color: var(--sell); }
+
+        /* Güzelleştirilmiş Malzeme Listesi */
+        .market-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px; }
+        .market-item { background: var(--card); padding: 15px; border-radius: 12px; border: 1px solid #334155; display: flex; justify-content: space-between; align-items: center; transition: 0.2s; }
+        .market-item:hover { border-color: var(--accent); }
+        .item-name { display: flex; align-items: center; gap: 8px; font-size: 1.1rem; }
+        .item-actions { display: flex; gap: 8px; align-items: center; }
+        .owned-info { color: #64748b; font-size: 0.8rem; text-align: right; margin-right: 10px; }
+
+        .btn { border: none; padding: 10px 15px; border-radius: 6px; color: white; font-weight: bold; cursor: pointer; transition: 0.2s; font-size: 0.9rem; }
         .btn-buy { background: var(--buy); }
         .btn-sell { background: var(--sell); }
+        .btn-full { width: 100%; padding: 15px; margin-top: 8px; font-size: 1rem; text-transform: uppercase; }
+
         input { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #475569; background: #0f172a; color: white; margin-bottom: 10px; }
+        .input-group { background: var(--card); padding: 15px; border-radius: 12px; margin-top: 15px; border: 1px solid #334155; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>Bazaar Tycoon</h1>
+    <div class="header">
+        <h1>Bazaar Tycoon</h1>
+        <p>Buy low, sell high, and become the Master of the Bazaar!</p>
+    </div>
     
     <div class="stats">
         <div class="stat-card">Day <span id="lblDay" class="stat-val">1/30</span></div>
         <div class="stat-card">Cash <span id="lblCash" class="stat-val">$10,000</span></div>
+        <div class="stat-card" style="grid-column: span 2;">Bank Debt <span id="lblDebt" class="debt-val">$25,000</span></div>
     </div>
 
-    <div id="marketTable"></div>
-    <button class="btn" style="background:var(--btn); width:100%; padding:15px; margin-top:10px" onclick="nextDay()">Next Day ➔</button>
+    <div id="marketTable" class="market-list"></div>
 
-    <div class="card" style="display:block; margin-top:15px;">
+    <button class="btn btn-full" style="background:var(--btn);" onclick="nextDay()">Next Day ➔</button>
+    <button class="btn btn-full" style="background:var(--upgrade); margin-top: 5px;" onclick="alert('Depo yakında eklenecek!')">Warehouse</button>
+    <button class="btn btn-full" style="background:var(--accent); margin-top: 5px;" onclick="watchAd()">Watch Ad to Earn +$100</button>
+
+    <div class="input-group">
         <h3>🏆 Save Your Score</h3>
         <input type="text" id="playerName" placeholder="Enter your name">
-        <button class="btn" style="background:var(--buy); width:100%" onclick="saveScore()">Save Score</button>
+        <button class="btn btn-buy" style="width:100%;" onclick="saveScore()">Save Score</button>
     </div>
 
-    <div class="card" style="display:block;">
+    <div class="input-group">
         <h3>🥇 Global Leaderboard</h3>
         <div id="leaderboard">Loading...</div>
     </div>
@@ -47,15 +73,20 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
     import { getDatabase, ref, push, onValue, query, orderByChild, limitToLast } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-database.js";
 
-    // Ürün listesini genişlettik
-    const gameState = { day: 1, cash: 10000, products: { 
-        coffee: { name: "☕ Coffee", price: 50, qty: 0 }, 
-        textiles: { name: "👕 Textiles", price: 200, qty: 0 },
-        gadgets: { name: "💻 Gadgets", price: 800, qty: 0 },
-        electronics: { name: "📱 Electronics", price: 2500, qty: 0 },
-        oil: { name: "🛢️ Oil", price: 6000, qty: 0 },
-        gold: { name: "💰 Gold", price: 15000, qty: 0 }
-    }};
+    // Oyun mantığını geri getirdik
+    const gameState = { 
+        day: 1, 
+        cash: 10000, 
+        debt: 25000,
+        products: { 
+            coffee: { name: "☕ Coffee", price: 50, qty: 0, default: 50 }, 
+            textiles: { name: "👕 Textiles", price: 200, qty: 0, default: 200 },
+            gadgets: { name: "💻 Gadgets", price: 800, qty: 0, default: 800 },
+            electronics: { name: "📱 Electronics", price: 2500, qty: 0, default: 2500 },
+            oil: { name: "🛢️ Oil", price: 6000, qty: 0, default: 6000 },
+            gold: { name: "💰 Gold", price: 15000, qty: 0, default: 15000 }
+        }
+    };
 
     const db = getDatabase(initializeApp({
         apiKey: "AIzaSyD7ZocVE8OyDbVSwE668zpgxeUJH1CLIsU",
@@ -63,15 +94,17 @@
         projectId: "bazaartycoon-e8fad"
     }));
 
-    // İsim yönetimi (Local Storage)
+    // Otomatik İsim Yönetimi (Local Storage)
     let savedName = localStorage.getItem("tycoon_name") || "Trader_" + Math.floor(Math.random() * 10000);
     localStorage.setItem("tycoon_name", savedName);
     document.getElementById('playerName').value = savedName;
 
+    window.watchAd = () => { gameState.cash += 100; updateUI(); alert("Reklam izlendi, +$100 kazanıldı!"); }
+
     window.nextDay = () => {
         if(gameState.day < 30) {
             gameState.day++;
-            Object.values(gameState.products).forEach(p => p.price = Math.floor(Math.random() * (p.price * 0.5)) + (p.price * 0.5));
+            Object.values(gameState.products).forEach(p => p.price = Math.floor(Math.random() * p.default) + Math.floor(p.default * 0.3));
             updateUI();
         } else alert("Game Over! Save your final score.");
     };
@@ -86,12 +119,15 @@
     function updateUI() {
         document.getElementById('lblDay').innerText = `${gameState.day}/30`;
         document.getElementById('lblCash').innerText = `$${gameState.cash.toLocaleString()}`;
+        document.getElementById('lblDebt').innerText = `$${gameState.debt.toLocaleString()}`;
+        
         let html = "";
         for(let k in gameState.products) {
             let p = gameState.products[k];
-            html += `<div class="card">
-                <span>${p.name} ($${p.price}) [Owned: ${p.qty}]</span>
-                <div>
+            html += `<div class="market-item">
+                <div class="item-name">${p.name} ($${p.price})</div>
+                <div class="item-actions">
+                    <span class="owned-info">[Owned: ${p.qty}]</span>
                     <button class="btn btn-buy" onclick="buy('${k}')">Buy</button>
                     <button class="btn btn-sell" onclick="sell('${k}')">Sell</button>
                 </div>
