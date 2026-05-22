@@ -8,11 +8,11 @@
         :root { --bg: #0b1120; --card: #1e293b; --accent: #38bdf8; --text: #f1f5f9; --buy: #059669; --sell: #e11d48; --btn: #4f46e5; }
         body { font-family: sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 15px; }
         .container { max-width: 500px; margin: 0 auto; }
-        .card { background: var(--card); padding: 15px; border-radius: 12px; margin-bottom: 10px; border: 1px solid #334155; }
+        .card { background: var(--card); padding: 12px; border-radius: 12px; margin-bottom: 8px; border: 1px solid #334155; display: flex; justify-content: space-between; align-items: center; }
         .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
         .stat-card { background: var(--card); padding: 15px; border-radius: 12px; text-align: center; border: 1px solid #334155; }
         .stat-val { display: block; font-size: 1.2rem; font-weight: bold; color: var(--accent); }
-        .btn { border: none; padding: 10px; border-radius: 6px; color: white; font-weight: bold; cursor: pointer; width: 100%; margin-top: 5px; }
+        .btn { border: none; padding: 8px 12px; border-radius: 6px; color: white; font-weight: bold; cursor: pointer; transition: 0.2s; }
         .btn-buy { background: var(--buy); }
         .btn-sell { background: var(--sell); }
         input { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #475569; background: #0f172a; color: white; margin-bottom: 10px; }
@@ -29,15 +29,15 @@
     </div>
 
     <div id="marketTable"></div>
-    <button class="btn" style="background:var(--btn)" onclick="nextDay()">Next Day ➔</button>
+    <button class="btn" style="background:var(--btn); width:100%; padding:15px; margin-top:10px" onclick="nextDay()">Next Day ➔</button>
 
-    <div class="card">
+    <div class="card" style="display:block; margin-top:15px;">
         <h3>🏆 Save Your Score</h3>
         <input type="text" id="playerName" placeholder="Enter your name">
-        <button class="btn" style="background:var(--buy)" onclick="saveScore()">Save Score</button>
+        <button class="btn" style="background:var(--buy); width:100%" onclick="saveScore()">Save Score</button>
     </div>
 
-    <div class="card">
+    <div class="card" style="display:block;">
         <h3>🥇 Global Leaderboard</h3>
         <div id="leaderboard">Loading...</div>
     </div>
@@ -47,9 +47,14 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
     import { getDatabase, ref, push, onValue, query, orderByChild, limitToLast } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-database.js";
 
+    // Ürün listesini genişlettik
     const gameState = { day: 1, cash: 10000, products: { 
-        coffee: { name: "☕", price: 100, qty: 0 }, 
-        gadgets: { name: "💻", price: 1200, qty: 0 } 
+        coffee: { name: "☕ Coffee", price: 50, qty: 0 }, 
+        textiles: { name: "👕 Textiles", price: 200, qty: 0 },
+        gadgets: { name: "💻 Gadgets", price: 800, qty: 0 },
+        electronics: { name: "📱 Electronics", price: 2500, qty: 0 },
+        oil: { name: "🛢️ Oil", price: 6000, qty: 0 },
+        gold: { name: "💰 Gold", price: 15000, qty: 0 }
     }};
 
     const db = getDatabase(initializeApp({
@@ -58,7 +63,7 @@
         projectId: "bazaartycoon-e8fad"
     }));
 
-    // Otomatik İsim Yönetimi
+    // İsim yönetimi (Local Storage)
     let savedName = localStorage.getItem("tycoon_name") || "Trader_" + Math.floor(Math.random() * 10000);
     localStorage.setItem("tycoon_name", savedName);
     document.getElementById('playerName').value = savedName;
@@ -66,7 +71,7 @@
     window.nextDay = () => {
         if(gameState.day < 30) {
             gameState.day++;
-            Object.values(gameState.products).forEach(p => p.price = Math.floor(Math.random() * 500) + 50);
+            Object.values(gameState.products).forEach(p => p.price = Math.floor(Math.random() * (p.price * 0.5)) + (p.price * 0.5));
             updateUI();
         } else alert("Game Over! Save your final score.");
     };
@@ -84,9 +89,13 @@
         let html = "";
         for(let k in gameState.products) {
             let p = gameState.products[k];
-            html += `<div class="card">${p.name} - $${p.price} 
-                <button class="btn btn-buy" onclick="buy('${k}')">Buy</button>
-                <button class="btn btn-sell" onclick="sell('${k}')">Sell</button></div>`;
+            html += `<div class="card">
+                <span>${p.name} ($${p.price}) [Owned: ${p.qty}]</span>
+                <div>
+                    <button class="btn btn-buy" onclick="buy('${k}')">Buy</button>
+                    <button class="btn btn-sell" onclick="sell('${k}')">Sell</button>
+                </div>
+            </div>`;
         }
         document.getElementById('marketTable').innerHTML = html;
     }
