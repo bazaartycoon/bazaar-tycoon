@@ -1,91 +1,167 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="tr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bazaar Tycoon</title>
+    <title>Bazaar Tycoon Pro</title>
     <style>
         :root { --bg: #0b1120; --card: #1e293b; --accent: #38bdf8; --text: #f1f5f9; --buy: #059669; --sell: #e11d48; --btn: #4f46e5; --upgrade: #f59e0b; }
-        body { font-family: sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 10px; }
-        .container { max-width: 500px; margin: 0 auto; }
-        .header { background: var(--card); padding: 15px; border-radius: 12px; margin-bottom: 10px; text-align: center; border: 1px solid #334155; }
-        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
-        .stat-card { background: var(--card); padding: 10px; border-radius: 8px; text-align: center; border: 1px solid #334155; }
-        .stat-val { display: block; font-weight: bold; color: var(--accent); }
-        .market-item { background: var(--card); padding: 12px; border-radius: 8px; border: 1px solid #334155; margin-bottom: 8px; }
-        .item-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
-        .price-range { font-size: 0.75rem; color: #94a3b8; margin-bottom: 8px; }
-        .actions { display: flex; gap: 5px; }
-        select { background: #0f172a; color: white; border: 1px solid #475569; padding: 5px; border-radius: 4px; }
-        .btn { border: none; padding: 8px 12px; border-radius: 4px; color: white; font-weight: bold; cursor: pointer; flex: 1; }
-        .btn-buy { background: var(--buy); }
-        .btn-sell { background: var(--sell); }
-        .btn-full { width: 100%; padding: 12px; margin-top: 5px; background: var(--btn); }
-        .btn-upgrade { background: var(--upgrade); margin-top: 5px; width: 100%; padding: 10px; }
-        .leaderboard-item { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid #334155; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 15px; }
+        .container { max-width: 550px; margin: 0 auto; }
+        
+        .header-panel { background: var(--card); padding: 20px; border-radius: 15px; text-align: center; border: 1px solid #334155; margin-bottom: 15px; }
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+        .stat-card { background: var(--card); padding: 15px; border-radius: 12px; text-align: center; border: 1px solid #334155; }
+        .stat-val { display: block; font-size: 1.2rem; font-weight: bold; color: var(--accent); }
+        
+        .market-item { background: var(--card); padding: 15px; border-radius: 12px; border: 1px solid #334155; margin-bottom: 12px; }
+        .item-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .price-range { font-size: 0.8rem; color: #94a3b8; font-style: italic; }
+        .action-group { display: flex; gap: 10px; margin-top: 10px; }
+        
+        select { flex: 1; background: #0f172a; color: white; border: 1px solid #475569; padding: 8px; border-radius: 6px; }
+        .btn { border: none; padding: 10px 15px; border-radius: 6px; color: white; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        .btn-buy { background: var(--buy); flex: 1; }
+        .btn-sell { background: var(--sell); flex: 1; }
+        .btn-main { width: 100%; padding: 15px; margin-top: 10px; background: var(--btn); font-size: 1rem; text-transform: uppercase; }
+        .btn-upgrade { width: 100%; padding: 12px; background: var(--upgrade); margin-top: 5px; font-weight: bold; }
+        
+        .banner { background: #1e293b; padding: 15px; text-align: center; border-radius: 10px; margin-top: 15px; border: 1px solid var(--accent); cursor: pointer; }
+        .save-section { background: var(--card); padding: 20px; border-radius: 15px; margin-top: 15px; border: 1px solid #334155; }
+        .leaderboard-list { margin-top: 10px; font-size: 0.95rem; }
     </style>
 </head>
 <body>
+
 <div class="container">
-    <div class="header"><h1>Bazaar Tycoon</h1></div>
-    <div class="stats-grid">
-        <div class="stat-card">Day <span id="lblDay" class="stat-val">1/30</span></div>
-        <div class="stat-card">Cash <span id="lblCash" class="stat-val">$10,000</span></div>
-        <div class="stat-card">Debt <span id="lblDebt" class="stat-val">$25,000</span></div>
-        <div class="stat-card">Storage <span id="lblStorage" class="stat-val">0/100</span></div>
-    </div>
-    <div id="marketTable"></div>
-    <button class="btn btn-upgrade" onclick="upgradeStorage()">📦 Upgrade Storage (+$500)</button>
-    <button class="btn btn-full" onclick="nextDay()">Next Day ➔</button>
-    <button class="btn btn-full" style="background:#0f172a; border:1px solid var(--accent);" onclick="watchAd()">📺 Watch Ad for +$1000</button>
+    <div class="header-panel"><h1>Bazaar Tycoon</h1></div>
     
-    <div class="header" style="margin-top:10px;">
-        <h3>🏆 Save Score</h3>
-        <input type="text" id="playerName" placeholder="Enter name" style="width:100%; padding:8px; border-radius:4px; box-sizing:border-box; background:#0f172a; color:white; border:1px solid #475569;">
-        <button class="btn btn-buy" style="width:100%; margin-top:8px" onclick="saveScore()">Save Score</button>
-        <h3>🥇 Leaderboard</h3>
-        <div id="leaderboard">Loading...</div>
+    <div class="stats-grid">
+        <div class="stat-card">Gün <span id="lblDay" class="stat-val">1/30</span></div>
+        <div class="stat-card">Nakit <span id="lblCash" class="stat-val">$10,000</span></div>
+        <div class="stat-card">Borç <span id="lblDebt" class="stat-val">$25,000</span></div>
+        <div class="stat-card">Depo <span id="lblStorage" class="stat-val">0/100</span></div>
     </div>
+
+    <div id="marketTable"></div>
+
+    <button class="btn btn-upgrade" onclick="upgradeStorage()">📦 Depo Kapasitesini Yükselt (+$500)</button>
+    <button class="btn btn-main" onclick="nextDay()">Yeni Güne Geç ➔</button>
+    <div class="banner" onclick="watchAd()">📺 Reklam İzle (+$1000)</div>
+    
+    <div class="save-section">
+        <h3>🏆 Skorunu Kaydet</h3>
+        <input type="text" id="playerName" placeholder="Oyuncu Adı" style="width:100%; padding:10px; border-radius:6px; background:#0f172a; color:white; border:1px solid #475569; box-sizing:border-box;">
+        <button class="btn btn-buy" style="width:100%; margin-top:10px" onclick="saveScore()">Puanı Kaydet</button>
+        <h3>🥇 Küresel Sıralama</h3>
+        <div id="leaderboard" class="leaderboard-list">Yükleniyor...</div>
+    </div>
+    
+    <footer style="text-align:center; padding:20px; color:#64748b; font-size:0.8rem;">
+        © 2026 Bazaar Tycoon - Tüm Hakları Saklıdır
+    </footer>
 </div>
+
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
     import { getDatabase, ref, push, onValue, query, orderByChild, limitToLast } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-database.js";
     
-    const gameState = { day: 1, cash: 10000, debt: 25000, storage: 0, maxStorage: 100, products: { 
-        coffee: { name: "☕ Coffee", price: 50, min: 20, max: 100, qty: 0 },
-        textiles: { name: "👕 Textiles", price: 200, min: 100, max: 400, qty: 0 },
-        gadgets: { name: "💻 Gadgets", price: 800, min: 400, max: 1600, qty: 0 },
-        electronics: { name: "📱 Electronics", price: 2500, min: 1000, max: 5000, qty: 0 },
-        gold: { name: "💰 Gold", price: 15000, min: 8000, max: 25000, qty: 0 }
-    }};
+    // Oyun Motoru Yapılandırması
+    const gameState = { 
+        day: 1, cash: 10000, debt: 25000, storage: 0, maxStorage: 100, 
+        products: { 
+            coffee: { name: "☕ Kahve", price: 50, min: 20, max: 100, qty: 0 },
+            textiles: { name: "👕 Tekstil", price: 200, min: 100, max: 400, qty: 0 },
+            gadgets: { name: "💻 Teknoloji", price: 800, min: 400, max: 1600, qty: 0 },
+            electronics: { name: "📱 Elektronik", price: 2500, min: 1000, max: 5000, qty: 0 },
+            gold: { name: "💰 Altın", price: 15000, min: 8000, max: 25000, qty: 0 }
+        }
+    };
 
-    const db = getDatabase(initializeApp({ apiKey: "AIzaSyD7ZocVE8OyDbVSwE668zpgxeUJH1CLIsU", databaseURL: "https://bazaartycoon-e8fad-default-rtdb.asia-southeast1.firebasedatabase.app", projectId: "bazaartycoon-e8fad" }));
+    const app = initializeApp({ 
+        apiKey: "AIzaSyD7ZocVE8OyDbVSwE668zpgxeUJH1CLIsU", 
+        databaseURL: "https://bazaartycoon-e8fad-default-rtdb.asia-southeast1.firebasedatabase.app", 
+        projectId: "bazaartycoon-e8fad" 
+    });
+    const db = getDatabase(app);
 
-    window.nextDay = () => { gameState.day++; for(let k in gameState.products) { let p = gameState.products[k]; p.price = Math.floor(Math.random() * (p.max - p.min + 1)) + p.min; } updateUI(); };
+    // Fonksiyonlar: Ekonomi yönetimi
+    window.nextDay = () => { 
+        gameState.day++; 
+        Object.keys(gameState.products).forEach(k => {
+            let p = gameState.products[k];
+            p.price = Math.floor(Math.random() * (p.max - p.min + 1)) + p.min;
+        });
+        updateUI(); 
+    };
+
+    window.upgradeStorage = () => { 
+        if(gameState.cash >= 500) { gameState.cash -= 500; gameState.maxStorage += 50; updateUI(); } 
+        else alert("Yetersiz Nakit!"); 
+    };
+
     window.watchAd = () => { gameState.cash += 1000; updateUI(); };
-    window.upgradeStorage = () => { if(gameState.cash >= 500) { gameState.cash -= 500; gameState.maxStorage += 50; updateUI(); } else alert("Not enough cash!"); };
-    window.saveScore = () => { push(ref(db, 'scores'), { name: document.getElementById('playerName').value, score: gameState.cash }); };
+
+    window.saveScore = () => { 
+        const name = document.getElementById('playerName').value || "Anonim";
+        push(ref(db, 'scores'), { name: name, score: gameState.cash, date: Date.now() });
+        alert("Puanınız kaydedildi!");
+    };
 
     function updateUI() {
         document.getElementById('lblDay').innerText = `${gameState.day}/30`;
         document.getElementById('lblCash').innerText = `$${gameState.cash.toLocaleString()}`;
         document.getElementById('lblDebt').innerText = `$${gameState.debt.toLocaleString()}`;
         document.getElementById('lblStorage').innerText = `${gameState.storage}/${gameState.maxStorage}`;
+        
         let html = "";
         for(let k in gameState.products) {
             let p = gameState.products[k];
-            html += `<div class="market-item"><div class="item-row"><strong>${p.name}</strong> <span>Owned: ${p.qty}</span></div><div class="price-range">Price: $${p.price} (Range: $${p.min}-$${p.max})</div><div class="actions"><select id="qty-${k}"><option value="1">1</option><option value="5">5</option><option value="10">10</option><option value="999">MAX</option></select><button class="btn btn-buy" onclick="buy('${k}')">Buy</button><button class="btn btn-sell" onclick="sell('${k}')">Sell</button></div></div>`;
+            html += `
+                <div class="market-item">
+                    <div class="item-row"><strong>${p.name}</strong> <span>Envanter: ${p.qty}</span></div>
+                    <div class="price-range">Piyasa Fiyatı: $${p.price} | Aralık: $${p.min}-$${p.max}</div>
+                    <div class="action-group">
+                        <select id="qty-${k}">
+                            <option value="1">1</option><option value="5">5</option>
+                            <option value="10">10</option><option value="999">MAX</option>
+                        </select>
+                        <button class="btn btn-buy" onclick="buy('${k}')">Al</button>
+                        <button class="btn btn-sell" onclick="sell('${k}')">Sat</button>
+                    </div>
+                </div>`;
         }
         document.getElementById('marketTable').innerHTML = html;
     }
 
-    window.buy = (k) => { let q = parseInt(document.getElementById(`qty-${k}`).value); if(q===999) q = gameState.maxStorage - gameState.storage; if(gameState.storage + q <= gameState.maxStorage && gameState.cash >= gameState.products[k].price * q) { gameState.cash -= (gameState.products[k].price * q); gameState.products[k].qty += q; gameState.storage += q; updateUI(); } };
-    window.sell = (k) => { let q = parseInt(document.getElementById(`qty-${k}`).value); if(q===999) q = gameState.products[k].qty; if(gameState.products[k].qty >= q) { gameState.cash += (gameState.products[k].price * q); gameState.products[k].qty -= q; gameState.storage -= q; updateUI(); } };
+    window.buy = (k) => { 
+        let q = parseInt(document.getElementById(`qty-${k}`).value);
+        if(q === 999) q = gameState.maxStorage - gameState.storage;
+        if(gameState.storage + q <= gameState.maxStorage && gameState.cash >= gameState.products[k].price * q) {
+            gameState.cash -= (gameState.products[k].price * q);
+            gameState.products[k].qty += q;
+            gameState.storage += q;
+            updateUI();
+        } else alert("Depo dolu veya bakiye yetersiz!");
+    };
+
+    window.sell = (k) => { 
+        let q = parseInt(document.getElementById(`qty-${k}`).value);
+        if(q === 999) q = gameState.products[k].qty;
+        if(gameState.products[k].qty >= q) {
+            gameState.cash += (gameState.products[k].price * q);
+            gameState.products[k].qty -= q;
+            gameState.storage -= q;
+            updateUI();
+        }
+    };
 
     onValue(query(ref(db, 'scores'), orderByChild('score'), limitToLast(5)), (s) => {
-        let html = ""; s.forEach(c => html += `<div class="leaderboard-item"><span>${c.val().name}</span> <b>$${c.val().score.toLocaleString()}</b></div>`);
+        let html = ""; 
+        s.forEach(c => html += `<div class="leaderboard-item"><span>${c.val().name}</span> <b>$${c.val().score.toLocaleString()}</b></div>`);
         document.getElementById('leaderboard').innerHTML = html;
     });
+
     updateUI();
 </script>
 </body>
