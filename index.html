@@ -5,14 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bazaar Tycoon</title>
     <style>
-        :root { --bg: #0b1120; --card: #1e293b; --accent: #38bdf8; --text: #f1f5f9; --buy: #059669; --sell: #e11d48; --btn: #4f46e5; --upgrade: #f59e0b; }
+        :root { --bg: #0b1120; --card: #1e293b; --accent: #38bdf8; --text: #f1f5f9; --buy: #059669; --sell: #e11d48; --btn: #4f46e5; }
         body { font-family: sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 15px; }
         .container { max-width: 500px; margin: 0 auto; }
         .card { background: var(--card); padding: 15px; border-radius: 12px; margin-bottom: 10px; border: 1px solid #334155; }
         .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
         .stat-card { background: var(--card); padding: 15px; border-radius: 12px; text-align: center; border: 1px solid #334155; }
         .stat-val { display: block; font-size: 1.2rem; font-weight: bold; color: var(--accent); }
-        .btn { border: none; padding: 10px; border-radius: 6px; color: white; font-weight: bold; cursor: pointer; width: 100%; margin-top: 5px; transition: 0.2s; }
+        .btn { border: none; padding: 10px; border-radius: 6px; color: white; font-weight: bold; cursor: pointer; width: 100%; margin-top: 5px; }
         .btn-buy { background: var(--buy); }
         .btn-sell { background: var(--sell); }
         input { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #475569; background: #0f172a; color: white; margin-bottom: 10px; }
@@ -29,7 +29,6 @@
     </div>
 
     <div id="marketTable"></div>
-
     <button class="btn" style="background:var(--btn)" onclick="nextDay()">Next Day ➔</button>
 
     <div class="card">
@@ -53,13 +52,16 @@
         gadgets: { name: "💻", price: 1200, qty: 0 } 
     }};
 
-    const firebaseConfig = {
+    const db = getDatabase(initializeApp({
         apiKey: "AIzaSyD7ZocVE8OyDbVSwE668zpgxeUJH1CLIsU",
         databaseURL: "https://bazaartycoon-e8fad-default-rtdb.asia-southeast1.firebasedatabase.app",
         projectId: "bazaartycoon-e8fad"
-    };
+    }));
 
-    const db = getDatabase(initializeApp(firebaseConfig));
+    // Otomatik İsim Yönetimi
+    let savedName = localStorage.getItem("tycoon_name") || "Trader_" + Math.floor(Math.random() * 10000);
+    localStorage.setItem("tycoon_name", savedName);
+    document.getElementById('playerName').value = savedName;
 
     window.nextDay = () => {
         if(gameState.day < 30) {
@@ -70,8 +72,10 @@
     };
 
     window.saveScore = () => {
-        push(ref(db, 'scores'), { name: document.getElementById('playerName').value || "Anonymous", score: gameState.cash });
-        alert("Saved!");
+        const name = document.getElementById('playerName').value;
+        localStorage.setItem("tycoon_name", name);
+        push(ref(db, 'scores'), { name: name, score: gameState.cash, timestamp: Date.now() });
+        alert("Saved as " + name);
     };
 
     function updateUI() {
@@ -92,7 +96,10 @@
 
     onValue(query(ref(db, 'scores'), orderByChild('score'), limitToLast(5)), (snapshot) => {
         let html = "";
-        snapshot.forEach(child => html += `<p>${child.val().name}: $${child.val().score.toLocaleString()}</p>`);
+        snapshot.forEach(child => { 
+            let val = child.val();
+            html += `<p>${val.name}: <b>$${val.score.toLocaleString()}</b></p>`;
+        });
         document.getElementById('leaderboard').innerHTML = html || "No scores yet.";
     });
 
