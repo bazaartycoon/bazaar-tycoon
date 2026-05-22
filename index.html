@@ -5,12 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bazaar Tycoon</title>
     <style>
-        :root { --bg: #0b1120; --card: #1e293b; --accent: #38bdf8; --text: #f1f5f9; --buy: #059669; --sell: #e11d48; }
-        body { font-family: sans-serif; background: var(--bg); color: var(--text); padding: 15px; }
+        :root { --bg: #0b1120; --card: #1e293b; --accent: #38bdf8; --text: #f1f5f9; --buy: #059669; --sell: #e11d48; --btn: #4f46e5; --upgrade: #f59e0b; }
+        body { font-family: sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 15px; }
         .container { max-width: 500px; margin: 0 auto; }
         .card { background: var(--card); padding: 15px; border-radius: 12px; margin-bottom: 10px; border: 1px solid #334155; }
-        .btn { border: none; padding: 10px; border-radius: 6px; color: white; font-weight: bold; cursor: pointer; width: 100%; margin-top: 5px; }
-        input { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #475569; margin-bottom: 10px; background: #0f172a; color: white; }
+        .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+        .stat-card { background: var(--card); padding: 15px; border-radius: 12px; text-align: center; border: 1px solid #334155; }
+        .stat-val { display: block; font-size: 1.2rem; font-weight: bold; color: var(--accent); }
+        .btn { border: none; padding: 10px; border-radius: 6px; color: white; font-weight: bold; cursor: pointer; width: 100%; margin-top: 5px; transition: 0.2s; }
+        .btn-buy { background: var(--buy); }
+        .btn-sell { background: var(--sell); }
+        input { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #475569; background: #0f172a; color: white; margin-bottom: 10px; }
     </style>
 </head>
 <body>
@@ -18,15 +23,24 @@
 <div class="container">
     <h1>Bazaar Tycoon</h1>
     
-    <div class="card">
-        <h3>🏆 Oyun Bitti! Skorunu Kaydet</h3>
-        <input type="text" id="playerName" placeholder="Adını Gir">
-        <button class="btn" style="background:#059669" onclick="saveScore()">Skoru Veritabanına Kaydet</button>
+    <div class="stats">
+        <div class="stat-card">Day <span id="lblDay" class="stat-val">1/30</span></div>
+        <div class="stat-card">Cash <span id="lblCash" class="stat-val">$10,000</span></div>
     </div>
-    
+
+    <div id="marketTable"></div>
+
+    <button class="btn" style="background:var(--btn)" onclick="nextDay()">Next Day ➔</button>
+
     <div class="card">
-        <h3>🥇 Liderlik Tablosu</h3>
-        <div id="leaderboard">Yükleniyor...</div>
+        <h3>🏆 Save Your Score</h3>
+        <input type="text" id="playerName" placeholder="Enter your name">
+        <button class="btn" style="background:var(--buy)" onclick="saveScore()">Save Score</button>
+    </div>
+
+    <div class="card">
+        <h3>🥇 Global Leaderboard</h3>
+        <div id="leaderboard">Loading...</div>
     </div>
 </div>
 
@@ -34,41 +48,55 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
     import { getDatabase, ref, push, onValue, query, orderByChild, limitToLast } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-database.js";
 
+    const gameState = { day: 1, cash: 10000, products: { 
+        coffee: { name: "☕", price: 100, qty: 0 }, 
+        gadgets: { name: "💻", price: 1200, qty: 0 } 
+    }};
+
     const firebaseConfig = {
         apiKey: "AIzaSyD7ZocVE8OyDbVSwE668zpgxeUJH1CLIsU",
-        authDomain: "bazaartycoon-e8fad.firebaseapp.com",
-        projectId: "bazaartycoon-e8fad",
         databaseURL: "https://bazaartycoon-e8fad-default-rtdb.asia-southeast1.firebasedatabase.app",
-        storageBucket: "bazaartycoon-e8fad.firebasestorage.app",
-        messagingSenderId: "666398131808",
-        appId: "1:666398131808:web:1702dba9df2af2793e2505"
+        projectId: "bazaartycoon-e8fad"
     };
 
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
+    const db = getDatabase(initializeApp(firebaseConfig));
 
-    // Skor Kaydetme Fonksiyonu
-    window.saveScore = function() {
-        const name = document.getElementById('playerName').value || "Anonim";
-        const score = 15000; // Örnek skor, bunu oyunun bitişindeki değişkenle değiştirebilirsin
-        push(ref(db, 'scores'), { name: name, score: score, timestamp: Date.now() });
-        alert("Başarıyla kaydedildi!");
+    window.nextDay = () => {
+        if(gameState.day < 30) {
+            gameState.day++;
+            Object.values(gameState.products).forEach(p => p.price = Math.floor(Math.random() * 500) + 50);
+            updateUI();
+        } else alert("Game Over! Save your final score.");
     };
 
-    // Liderlik Tablosunu Otomatik Güncelleme
-    const scoresRef = query(ref(db, 'scores'), orderByChild('score'), limitToLast(5));
-    onValue(scoresRef, (snapshot) => {
-        const data = snapshot.val();
+    window.saveScore = () => {
+        push(ref(db, 'scores'), { name: document.getElementById('playerName').value || "Anonymous", score: gameState.cash });
+        alert("Saved!");
+    };
+
+    function updateUI() {
+        document.getElementById('lblDay').innerText = `${gameState.day}/30`;
+        document.getElementById('lblCash').innerText = `$${gameState.cash.toLocaleString()}`;
         let html = "";
-        if (data) {
-            Object.values(data).reverse().forEach(entry => {
-                html += `<p>${entry.name}: <b>$${entry.score.toLocaleString()}</b></p>`;
-            });
-        } else {
-            html = "Henüz kayıt yok.";
+        for(let k in gameState.products) {
+            let p = gameState.products[k];
+            html += `<div class="card">${p.name} - $${p.price} 
+                <button class="btn btn-buy" onclick="buy('${k}')">Buy</button>
+                <button class="btn btn-sell" onclick="sell('${k}')">Sell</button></div>`;
         }
-        document.getElementById('leaderboard').innerHTML = html;
+        document.getElementById('marketTable').innerHTML = html;
+    }
+
+    window.buy = (k) => { if(gameState.cash >= gameState.products[k].price) { gameState.cash -= gameState.products[k].price; gameState.products[k].qty++; updateUI(); } };
+    window.sell = (k) => { if(gameState.products[k].qty > 0) { gameState.cash += gameState.products[k].price; gameState.products[k].qty--; updateUI(); } };
+
+    onValue(query(ref(db, 'scores'), orderByChild('score'), limitToLast(5)), (snapshot) => {
+        let html = "";
+        snapshot.forEach(child => html += `<p>${child.val().name}: $${child.val().score.toLocaleString()}</p>`);
+        document.getElementById('leaderboard').innerHTML = html || "No scores yet.";
     });
+
+    updateUI();
 </script>
 </body>
 </html>
