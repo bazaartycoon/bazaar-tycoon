@@ -8,31 +8,49 @@
         :root { 
             --bg: #0b1120; --card: #1e293b; --accent: #38bdf8; 
             --text: #f1f5f9; --buy: #059669; --sell: #e11d48; --btn: #4f46e5;
+            --upgrade: #f59e0b;
         }
         body { font-family: 'Segoe UI', system-ui, sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 15px; }
         .container { max-width: 500px; margin: 0 auto; }
         
-        .header { text-align: center; margin-bottom: 20px; }
-        .header h1 { margin: 0; color: var(--accent); font-size: 1.8rem; letter-spacing: 1px; }
+        .header { text-align: center; margin-bottom: 20px; padding: 15px; background: rgba(56, 189, 248, 0.1); border-radius: 12px; border: 1px solid rgba(56, 189, 248, 0.3); }
+        .header h1 { margin: 0; color: var(--accent); font-size: 1.8rem; letter-spacing: 1px; text-transform: uppercase; }
         
         .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
-        .stat-card { background: var(--card); padding: 15px; border-radius: 12px; text-align: center; border: 1px solid #334155; }
-        .stat-val { display: block; font-size: 1.2rem; font-weight: bold; color: var(--accent); }
-        .stat-label { font-size: 0.75rem; color: #94a3b8; text-transform: uppercase; }
+        .stat-card { background: var(--card); padding: 15px; border-radius: 12px; text-align: center; border: 1px solid #334155; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
+        .stat-val { display: block; font-size: 1.4rem; font-weight: bold; color: var(--accent); }
+        .stat-label { font-size: 0.8rem; color: #94a3b8; text-transform: uppercase; }
+        .debt-val { color: var(--sell); }
 
-        .market-table { width: 100%; border-collapse: separate; border-spacing: 0 8px; }
-        .market-row { background: var(--card); border-radius: 8px; }
-        td { padding: 12px; }
-        .price-main { display: block; font-weight: bold; }
-        .price-range { font-size: 0.65rem; color: #64748b; }
+        .market-table { width: 100%; border-collapse: separate; border-spacing: 0 8px; margin-bottom: 20px; }
+        .market-row { background: var(--card); border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+        td { padding: 12px; text-align: center; vertical-align: middle; border-bottom: 1px solid rgba(51, 65, 85, 0.5); }
+        td:first-child { border-top-left-radius: 8px; border-bottom-left-radius: 8px; }
+        td:last-child { border-top-right-radius: 8px; border-bottom-right-radius: 8px; }
         
-        .btn { border: none; padding: 10px; border-radius: 6px; font-weight: bold; cursor: pointer; color: white; transition: 0.2s; }
-        .btn:active { transform: scale(0.95); }
+        .product-icon { font-size: 2rem; display: block; }
+        .price-main { display: block; font-weight: bold; font-size: 1.1rem; color: #fff; }
+        .price-range { font-size: 0.7rem; color: #64748b; }
+        .qty-val { font-size: 1.1rem; font-weight: bold; }
+        
+        .btn { border: none; padding: 10px; border-radius: 6px; font-weight: bold; cursor: pointer; color: white; transition: 0.2s; font-size: 0.8rem; }
+        .btn:active { transform: scale(0.95); opacity: 0.8; }
         .btn-buy { background: var(--buy); width: 100%; margin-bottom: 4px; }
+        .btn-buy:hover { background: #047857; }
         .btn-sell { background: var(--sell); width: 100%; }
-        .btn-main { background: var(--btn); width: 100%; padding: 15px; margin-top: 10px; }
+        .btn-sell:hover { background: #b91c1c; }
+        
+        .btn-main { background: var(--btn); width: 100%; padding: 15px; margin-top: 10px; font-size: 1rem; text-transform: uppercase; letter-spacing: 1px; }
+        .btn-main:hover { background: #3730a3; }
+        .btn-upgrade { background: var(--upgrade); color: #0b1120; }
+        .btn-upgrade:hover { background: #d97706; }
 
-        select { background: #334155; color: white; border: none; padding: 5px; border-radius: 4px; }
+        .module-box { padding: 15px; border: 1px solid #334155; border-radius: 12px; margin-top: 20px; background: rgba(30, 41, 59, 0.5); }
+        .module-box h3 { margin-top: 0; color: #e2e8f0; text-align: center; }
+        
+        select { background: #334155; color: white; border: 1px solid #475569; padding: 8px; border-radius: 6px; width: 100%; font-size: 1rem; margin-bottom: 10px; }
+        
+        .ad-footer { margin-top: 30px; text-align: center; min-height: 90px; border-top: 1px solid #334155; padding-top: 15px; }
     </style>
 </head>
 <body>
@@ -43,35 +61,163 @@
     <div class="stats">
         <div class="stat-card"><span class="stat-label">Day</span><span id="lblDay" class="stat-val">1/30</span></div>
         <div class="stat-card"><span class="stat-label">Cash</span><span id="lblCash" class="stat-val">$10,000</span></div>
+        <div class="stat-card"><span class="stat-label">Debt</span><span id="lblDebt" class="stat-val debt-val">$0</span></div>
+        <div class="stat-card"><span class="stat-label">Stock</span><span id="lblStorage" class="stat-val">0/20</span></div>
     </div>
 
     <table class="market-table" id="marketTable"></table>
 
     <button class="btn btn-main" onclick="nextDay()">Next Day ➔</button>
+    <button class="btn btn-upgrade" onclick="upgradeStorage()" style="width:100%; margin-top:10px;">📦 Upgrade Storage (Cost: $5,000)</button>
+    <button class="btn btn-ad" onclick="watchAd()" style="width:100%; margin-top:10px; background: var(--ad-color);">🎥 Watch Ad & Earn $2,000</button>
+
+    <div class="module-box">
+        <h3>🏦 Banking</h3>
+        <select id="bankAmount"><option value="1000">$1,000</option><option value="5000">$5,000</option></select>
+        <div style="display:flex; gap:10px;">
+            <button class="btn btn-main" onclick="takeLoan()" style="flex:1; margin-top:0;">Borrow</button>
+            <button class="btn btn-sell" onclick="repayLoan()" style="flex:1; padding:15px; font-size:1rem;">Repay</button>
+        </div>
+    </div>
+</div>
+
+<div class="ad-footer">
+    <script type="text/javascript">
+        atOptions = {
+            'key' : '6cb28deb56ed227ba08751f4c06e73e8',
+            'format' : 'standard',
+            'height' : 90,
+            'width' : 728,
+            'params' : {}
+        };
+    </script>
+    <script type="text/javascript" src="//www.highperformanceformat.com/6cb28deb56ed227ba08751f4c06e73e8/invoke.js"></script>
 </div>
 
 <script>
-    let gameState = { day: 1, cash: 10000, products: { 
-        coffee: { name: "☕", price: 100, min: 50, max: 250, qty: 0 }, 
-        gadgets: { name: "💻", price: 1200, min: 600, max: 2500, qty: 0 } 
-    } };
+    let gameState = { 
+        day: 1, 
+        cash: 10000, 
+        debt: 0, 
+        currentStorage: 0, 
+        maxStorage: 20, 
+        products: { 
+            coffee: { name: "☕", price: 100, min: 50, max: 250, qty: 0 }, 
+            spices: { name: "🌶️", price: 50, min: 20, max: 150, qty: 0 }, 
+            fabric: { name: "🧵", price: 300, min: 150, max: 600, qty: 0 }, 
+            gadgets: { name: "💻", price: 1200, min: 600, max: 2500, qty: 0 } 
+        } 
+    };
+
+    function upgradeStorage() { 
+        if(gameState.cash >= 5000) { 
+            gameState.cash -= 5000; 
+            gameState.maxStorage += 10; 
+            updateUI(); 
+        } else { 
+            alert("Not enough cash!"); 
+        } 
+    }
 
     function updateUI() {
         document.getElementById('lblDay').innerText = `${gameState.day}/30`;
         document.getElementById('lblCash').innerText = `$${gameState.cash.toLocaleString()}`;
+        document.getElementById('lblDebt').innerText = `$${gameState.debt.toLocaleString()}`;
+        document.getElementById('lblStorage').innerText = `${gameState.currentStorage}/${gameState.maxStorage}`;
+        
         let html = '';
         for (let k in gameState.products) {
             let p = gameState.products[k];
             html += `<tr class="market-row">
-                <td style="font-size:1.5rem">${p.name}</td>
+                <td><span class="product-icon">${p.name}</span></td>
                 <td><span class="price-main">$${p.price}</span><span class="price-range">${p.min}-${p.max}</span></td>
-                <td>${p.qty}</td>
-                <td><button class="btn btn-buy" onclick="buy('${k}')">Buy</button><button class="btn btn-sell" onclick="sell('${k}')">Sell</button></td>
+                <td><span class="qty-val">${p.qty}</span><br><span class="stat-label">Qty</span></td>
+                <td>
+                    <select id="amt_${k}" style="width:50px; margin-bottom:5px;"><option value="1">1</option><option value="5">5</option><option value="max">M</option></select>
+                    <button class="btn btn-buy" onclick="buy('${k}')">Buy</button>
+                    <button class="btn btn-sell" onclick="sell('${k}')">Sell</button>
+                </td>
             </tr>`;
         }
         document.getElementById('marketTable').innerHTML = html;
     }
-    // ... diğer fonksiyonlar (buy, sell, nextDay) aynı kalabilir
+
+    function watchAd() { 
+        window.open('https://www.effectivecpmnetwork.com/qa0r2bb1a?key=086e2069ca27730d6b652050880ae41b', '_blank'); 
+        gameState.cash += 2000; 
+        updateUI(); 
+    }
+
+    function buy(k) { 
+        let p = gameState.products[k]; 
+        let val = document.getElementById('amt_'+k).value; 
+        let amt = (val === 'max') ? (gameState.maxStorage - gameState.currentStorage) : parseInt(val); 
+        
+        if (amt > 0 && gameState.cash >= p.price * amt && gameState.currentStorage + amt <= gameState.maxStorage) { 
+            gameState.cash -= p.price * amt; 
+            p.qty += amt; 
+            gameState.currentStorage += amt; 
+            updateUI(); 
+        } else if (gameState.currentStorage + amt > gameState.maxStorage) {
+            alert("Not enough storage space!");
+        } else if (gameState.cash < p.price * amt) {
+            alert("Not enough cash!");
+        }
+    }
+
+    function sell(k) { 
+        let p = gameState.products[k]; 
+        let val = document.getElementById('amt_'+k).value; 
+        let amt = (val === 'max') ? p.qty : parseInt(val); 
+        
+        if (amt > 0 && p.qty >= amt) { 
+            gameState.cash += p.price * amt; 
+            p.qty -= amt; 
+            gameState.currentStorage -= amt; 
+            updateUI(); 
+        } else if (p.qty < amt) {
+            alert("Not enough stock to sell!");
+        }
+    }
+
+    function takeLoan() { 
+        let amt = parseInt(document.getElementById('bankAmount').value); 
+        if (gameState.debt + amt <= 15000) { 
+            gameState.cash += amt; 
+            gameState.debt += amt; 
+            updateUI(); 
+        } else {
+            alert("Loan limit reached ($15,000)!");
+        }
+    }
+
+    function repayLoan() { 
+        let amt = parseInt(document.getElementById('bankAmount').value); 
+        if(gameState.cash >= amt && gameState.debt >= amt) { 
+            gameState.cash -= amt; 
+            gameState.debt -= amt; 
+            updateUI(); 
+        } else if (gameState.cash < amt) {
+            alert("Not enough cash to repay!");
+        } else if (gameState.debt < amt) {
+            alert("Debt is less than repayment amount!");
+        }
+    }
+
+    function nextDay() { 
+        if (gameState.day < 30) {
+            gameState.day++; 
+            for (let k in gameState.products) { 
+                let p = gameState.products[k]; 
+                p.price = Math.round(Math.random() * (p.max - p.min) + p.min); 
+            } 
+            updateUI(); 
+        } else {
+            alert("Game Over! Final Cash: $" + gameState.cash.toLocaleString());
+            // Opsiyonel: Oyunu sıfırla veya skoru kaydet
+        }
+    }
+
     updateUI();
 </script>
 </body>
