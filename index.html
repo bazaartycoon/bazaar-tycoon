@@ -17,12 +17,17 @@
         .price-range { font-size: 0.8rem; color: #94a3b8; font-style: italic; }
         .action-group { display: flex; gap: 10px; margin-top: 10px; }
         select { flex: 1; background: #0f172a; color: white; border: 1px solid #475569; padding: 8px; border-radius: 6px; }
-        .btn { border: none; padding: 10px 15px; border-radius: 6px; color: white; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        
+        /* Buton Tıklanma Efekti */
+        .btn { border: none; padding: 10px 15px; border-radius: 6px; color: white; font-weight: bold; cursor: pointer; transition: 0.2s; pointer-events: auto !important; }
+        .btn:active { transform: scale(0.98); }
+        
         .btn-buy { background: var(--buy); flex: 1; }
         .btn-sell { background: var(--sell); flex: 1; }
         .btn-main { width: 100%; padding: 15px; margin-top: 10px; background: var(--btn); font-size: 1rem; text-transform: uppercase; }
         .btn-upgrade { width: 100%; padding: 12px; background: var(--upgrade); margin-top: 5px; font-weight: bold; }
-        .banner { background: #1e293b; padding: 15px; text-align: center; border-radius: 10px; margin-top: 15px; border: 1px solid var(--accent); cursor: pointer; color: var(--accent); font-weight: bold; }
+        .banner { background: #1e293b; padding: 15px; text-align: center; border-radius: 10px; margin-top: 15px; border: 1px solid var(--accent); cursor: pointer; color: var(--accent); font-weight: bold; transition: 0.2s; }
+        .banner:active { transform: scale(0.98); }
         .save-section { background: var(--card); padding: 20px; border-radius: 15px; margin-top: 15px; border: 1px solid #334155; }
         .leaderboard-item { display: flex; justify-content: space-between; padding: 8px; background: #0f172a; margin-top: 5px; border-radius: 5px; }
     </style>
@@ -46,8 +51,8 @@
             <button class="btn btn-buy" style="width:100%" onclick="saveScore()">Save Current Score</button>
             <h3>🥇 Global Leaderboard</h3>
             <div id="leaderboard"><em>Loading...</em></div>
+            <button id="toggleBtn" class="btn" style="width:100%; margin-top:15px; background:#475569;">Show/Hide All (Top 100)</button>
         </div>
-        <button id="toggleBtn" class="btn" style="width:100%; margin-top:15px; background:#e11d48; pointer-events: auto !important; z-index: 9999; position: relative;">Show/Hide All (Top 100)</button>
     </div>
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
@@ -76,7 +81,7 @@
     function renderLeaderboard() {
         const board = document.getElementById('leaderboard');
         board.innerHTML = "";
-        let limit = showAll ? 100 : 5;
+        let limit = showAll ? 100 : 3; // Default 3
         allScores.slice(0, limit).forEach(s => board.innerHTML += `<div class="leaderboard-item"><span>${s.name}</span> <b>$${s.score.toLocaleString()}</b></div>`);
     }
 
@@ -101,7 +106,6 @@
     window.buy = (k) => { let q = document.getElementById(`qty-${k}`).value === "MAX" ? Math.min(gameState.maxStorage - gameState.storage, Math.floor(gameState.cash / gameState.products[k].price)) : parseInt(document.getElementById(`qty-${k}`).value); if(gameState.storage + q <= gameState.maxStorage && gameState.cash >= gameState.products[k].price * q) { gameState.cash -= (gameState.products[k].price * q); gameState.products[k].qty += q; gameState.storage += q; updateUI(); } };
     window.sell = (k) => { let q = document.getElementById(`qty-${k}`).value === "MAX" ? gameState.products[k].qty : parseInt(document.getElementById(`qty-${k}`).value); if(gameState.products[k].qty >= q) { gameState.cash += (gameState.products[k].price * q); gameState.products[k].qty -= q; gameState.storage -= q; updateUI(); } };
 
-    // Butonu en kesin şekilde burada bağlıyoruz
     document.getElementById('toggleBtn').onclick = () => window.toggleLeaderboard();
 
     onValue(ref(db, 'scores'), (s) => { allScores = []; s.forEach(c => allScores.push(c.val())); allScores.sort((a,b) => b.score - a.score); renderLeaderboard(); });
