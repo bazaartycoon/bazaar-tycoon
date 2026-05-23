@@ -1,91 +1,73 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bazaar Tycoon Pro</title>
     <style>
         :root { --bg: #0b1120; --card: #1e293b; --accent: #38bdf8; --text: #f1f5f9; --buy: #059669; --sell: #e11d48; --btn: #4f46e5; --upgrade: #f59e0b; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 15px; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 15px; }
         .container { max-width: 550px; margin: 0 auto; }
-        
         .header-panel { background: var(--card); padding: 20px; border-radius: 15px; text-align: center; border: 1px solid #334155; margin-bottom: 15px; }
         .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
         .stat-card { background: var(--card); padding: 15px; border-radius: 12px; text-align: center; border: 1px solid #334155; }
         .stat-val { display: block; font-size: 1.2rem; font-weight: bold; color: var(--accent); }
-        
         .market-item { background: var(--card); padding: 15px; border-radius: 12px; border: 1px solid #334155; margin-bottom: 12px; }
         .item-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
         .price-range { font-size: 0.8rem; color: #94a3b8; font-style: italic; }
         .action-group { display: flex; gap: 10px; margin-top: 10px; }
-        
         select { flex: 1; background: #0f172a; color: white; border: 1px solid #475569; padding: 8px; border-radius: 6px; }
         .btn { border: none; padding: 10px 15px; border-radius: 6px; color: white; font-weight: bold; cursor: pointer; transition: 0.3s; }
         .btn-buy { background: var(--buy); flex: 1; }
         .btn-sell { background: var(--sell); flex: 1; }
         .btn-main { width: 100%; padding: 15px; margin-top: 10px; background: var(--btn); font-size: 1rem; text-transform: uppercase; }
         .btn-upgrade { width: 100%; padding: 12px; background: var(--upgrade); margin-top: 5px; font-weight: bold; }
-        
         .banner { background: #1e293b; padding: 15px; text-align: center; border-radius: 10px; margin-top: 15px; border: 1px solid var(--accent); cursor: pointer; }
         .save-section { background: var(--card); padding: 20px; border-radius: 15px; margin-top: 15px; border: 1px solid #334155; }
         .leaderboard-list { margin-top: 10px; font-size: 0.95rem; }
     </style>
 </head>
 <body>
-
 <div class="container">
     <div class="header-panel"><h1>Bazaar Tycoon</h1></div>
-    
     <div class="stats-grid">
-        <div class="stat-card">Gün <span id="lblDay" class="stat-val">1/30</span></div>
-        <div class="stat-card">Nakit <span id="lblCash" class="stat-val">$10,000</span></div>
-        <div class="stat-card">Borç <span id="lblDebt" class="stat-val">$25,000</span></div>
-        <div class="stat-card">Depo <span id="lblStorage" class="stat-val">0/100</span></div>
+        <div class="stat-card">Day <span id="lblDay" class="stat-val">1/30</span></div>
+        <div class="stat-card">Cash <span id="lblCash" class="stat-val">$10,000</span></div>
+        <div class="stat-card">Debt <span id="lblDebt" class="stat-val">$25,000</span></div>
+        <div class="stat-card">Storage <span id="lblStorage" class="stat-val">0/100</span></div>
     </div>
-
     <div id="marketTable"></div>
-
-    <button class="btn btn-upgrade" onclick="upgradeStorage()">📦 Depo Kapasitesini Yükselt (+$500)</button>
-    <button class="btn btn-main" onclick="nextDay()">Yeni Güne Geç ➔</button>
-    <div class="banner" onclick="watchAd()">📺 Reklam İzle (+$1000)</div>
-    
+    <button class="btn btn-upgrade" onclick="upgradeStorage()">📦 Upgrade Storage (+$500)</button>
+    <button class="btn btn-main" onclick="nextDay()">Next Day ➔</button>
+    <div class="banner" onclick="watchAd()">📺 Watch Ad for +$1000</div>
     <div class="save-section">
-        <h3>🏆 Skorunu Kaydet</h3>
-        <input type="text" id="playerName" placeholder="Oyuncu Adı" style="width:100%; padding:10px; border-radius:6px; background:#0f172a; color:white; border:1px solid #475569; box-sizing:border-box;">
-        <button class="btn btn-buy" style="width:100%; margin-top:10px" onclick="saveScore()">Puanı Kaydet</button>
-        <h3>🥇 Küresel Sıralama</h3>
-        <div id="leaderboard" class="leaderboard-list">Yükleniyor...</div>
+        <h3>🏆 Save Your Score</h3>
+        <input type="text" id="playerName" placeholder="Player Name" style="width:100%; padding:10px; border-radius:6px; background:#0f172a; color:white; border:1px solid #475569; box-sizing:border-box;">
+        <button class="btn btn-buy" style="width:100%; margin-top:10px" onclick="saveScore()">Save Score</button>
+        <h3>🥇 Global Leaderboard</h3>
+        <div id="leaderboard" class="leaderboard-list">Loading...</div>
     </div>
-    
     <footer style="text-align:center; padding:20px; color:#64748b; font-size:0.8rem;">
-        © 2026 Bazaar Tycoon - Tüm Hakları Saklıdır
+        © 2026 Bazaar Tycoon - All Rights Reserved
     </footer>
 </div>
-
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
     import { getDatabase, ref, push, onValue, query, orderByChild, limitToLast } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-database.js";
     
-    // Oyun Motoru Yapılandırması
     const gameState = { 
         day: 1, cash: 10000, debt: 25000, storage: 0, maxStorage: 100, 
         products: { 
-            coffee: { name: "☕ Kahve", price: 50, min: 20, max: 100, qty: 0 },
-            textiles: { name: "👕 Tekstil", price: 200, min: 100, max: 400, qty: 0 },
-            gadgets: { name: "💻 Teknoloji", price: 800, min: 400, max: 1600, qty: 0 },
-            electronics: { name: "📱 Elektronik", price: 2500, min: 1000, max: 5000, qty: 0 },
-            gold: { name: "💰 Altın", price: 15000, min: 8000, max: 25000, qty: 0 }
+            coffee: { name: "☕ Coffee", price: 50, min: 20, max: 100, qty: 0 },
+            textiles: { name: "👕 Textiles", price: 200, min: 100, max: 400, qty: 0 },
+            gadgets: { name: "💻 Gadgets", price: 800, min: 400, max: 1600, qty: 0 },
+            electronics: { name: "📱 Electronics", price: 2500, min: 1000, max: 5000, qty: 0 },
+            gold: { name: "💰 Gold", price: 15000, min: 8000, max: 25000, qty: 0 }
         }
     };
 
-    const app = initializeApp({ 
-        apiKey: "AIzaSyD7ZocVE8OyDbVSwE668zpgxeUJH1CLIsU", 
-        databaseURL: "https://bazaartycoon-e8fad-default-rtdb.asia-southeast1.firebasedatabase.app", 
-        projectId: "bazaartycoon-e8fad" 
-    });
-    const db = getDatabase(app);
+    const db = getDatabase(initializeApp({ apiKey: "AIzaSyD7ZocVE8OyDbVSwE668zpgxeUJH1CLIsU", databaseURL: "https://bazaartycoon-e8fad-default-rtdb.asia-southeast1.firebasedatabase.app", projectId: "bazaartycoon-e8fad" }));
 
-    // Fonksiyonlar: Ekonomi yönetimi
     window.nextDay = () => { 
         gameState.day++; 
         Object.keys(gameState.products).forEach(k => {
@@ -95,18 +77,9 @@
         updateUI(); 
     };
 
-    window.upgradeStorage = () => { 
-        if(gameState.cash >= 500) { gameState.cash -= 500; gameState.maxStorage += 50; updateUI(); } 
-        else alert("Yetersiz Nakit!"); 
-    };
-
+    window.upgradeStorage = () => { if(gameState.cash >= 500) { gameState.cash -= 500; gameState.maxStorage += 50; updateUI(); } else alert("Insufficient Cash!"); };
     window.watchAd = () => { gameState.cash += 1000; updateUI(); };
-
-    window.saveScore = () => { 
-        const name = document.getElementById('playerName').value || "Anonim";
-        push(ref(db, 'scores'), { name: name, score: gameState.cash, date: Date.now() });
-        alert("Puanınız kaydedildi!");
-    };
+    window.saveScore = () => { push(ref(db, 'scores'), { name: document.getElementById('playerName').value || "Anonymous", score: gameState.cash, date: Date.now() }); alert("Score Saved!"); };
 
     function updateUI() {
         document.getElementById('lblDay').innerText = `${gameState.day}/30`;
@@ -119,15 +92,15 @@
             let p = gameState.products[k];
             html += `
                 <div class="market-item">
-                    <div class="item-row"><strong>${p.name}</strong> <span>Envanter: ${p.qty}</span></div>
-                    <div class="price-range">Piyasa Fiyatı: $${p.price} | Aralık: $${p.min}-$${p.max}</div>
+                    <div class="item-row"><strong>${p.name}</strong> <span>Owned: ${p.qty}</span></div>
+                    <div class="price-range">Price: $${p.price} | Range: $${p.min}-$${p.max}</div>
                     <div class="action-group">
                         <select id="qty-${k}">
                             <option value="1">1</option><option value="5">5</option>
                             <option value="10">10</option><option value="999">MAX</option>
                         </select>
-                        <button class="btn btn-buy" onclick="buy('${k}')">Al</button>
-                        <button class="btn btn-sell" onclick="sell('${k}')">Sat</button>
+                        <button class="btn btn-buy" onclick="buy('${k}')">Buy</button>
+                        <button class="btn btn-sell" onclick="sell('${k}')">Sell</button>
                     </div>
                 </div>`;
         }
@@ -142,7 +115,7 @@
             gameState.products[k].qty += q;
             gameState.storage += q;
             updateUI();
-        } else alert("Depo dolu veya bakiye yetersiz!");
+        } else alert("Storage Full or Insufficient Cash!");
     };
 
     window.sell = (k) => { 
