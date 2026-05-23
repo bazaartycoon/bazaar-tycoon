@@ -46,9 +46,7 @@
             <button class="btn btn-buy" style="width:100%" onclick="saveScore()">Save Current Score</button>
             <h3>🥇 Global Leaderboard</h3>
             <div id="leaderboard"><em>Loading...</em></div>
-            <div style="margin-top: 15px;">
-                <button id="toggleBtn" class="btn" style="width:100%; background:#475569; pointer-events: auto;">Show/Hide All (Top 100)</button>
-            </div>
+            <button class="btn" style="width:100%; margin-top:15px; background:#475569;" onclick="window.toggleLeaderboard()">Show/Hide All (Top 100)</button>
         </div>
     </div>
 <script type="module">
@@ -102,9 +100,6 @@
 
     window.buy = (k) => { let q = document.getElementById(`qty-${k}`).value === "MAX" ? Math.min(gameState.maxStorage - gameState.storage, Math.floor(gameState.cash / gameState.products[k].price)) : parseInt(document.getElementById(`qty-${k}`).value); if(gameState.storage + q <= gameState.maxStorage && gameState.cash >= gameState.products[k].price * q) { gameState.cash -= (gameState.products[k].price * q); gameState.products[k].qty += q; gameState.storage += q; updateUI(); } };
     window.sell = (k) => { let q = document.getElementById(`qty-${k}`).value === "MAX" ? gameState.products[k].qty : parseInt(document.getElementById(`qty-${k}`).value); if(gameState.products[k].qty >= q) { gameState.cash += (gameState.products[k].price * q); gameState.products[k].qty -= q; gameState.storage -= q; updateUI(); } };
-
-    // Butonu JS üzerinden dinleyerek çakışmayı yok ettik
-    document.getElementById('toggleBtn').addEventListener('click', () => { window.toggleLeaderboard(); });
 
     onValue(ref(db, 'scores'), (s) => { allScores = []; s.forEach(c => allScores.push(c.val())); allScores.sort((a,b) => b.score - a.score); renderLeaderboard(); });
     document.getElementById('playerName').value = `Player #${Math.floor(1000 + Math.random() * 9000)}`;
