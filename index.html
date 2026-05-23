@@ -2,64 +2,111 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bazaar Tycoon Pro</title>
     <style>
-        :root { --bg: #0b1120; --card: #1e293b; --accent: #38bdf8; --text: #f1f5f9; --btn: #4f46e5; }
-        body { font-family: sans-serif; background-color: var(--bg); color: var(--text); padding: 15px; }
+        :root { --bg: #0b1120; --card: #1e293b; --accent: #38bdf8; --text: #f1f5f9; --buy: #059669; --sell: #e11d48; --btn: #4f46e5; --upgrade: #f59e0b; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 15px; }
         .container { max-width: 550px; margin: 0 auto; }
-        .market-item { background: var(--card); padding: 15px; border-radius: 12px; margin-bottom: 12px; border: 1px solid #334155; }
-        .price-range { font-size: 0.8rem; color: #94a3b8; }
-        /* Butonun tıklanabilir olması için stil */
-        .btn-toggle { 
-            width: 100%; padding: 15px; margin-top: 15px; 
-            background: #475569; color: white; border: none; 
-            border-radius: 6px; cursor: pointer; font-weight: bold; 
-            display: block; text-align: center;
-        }
-        .btn-toggle:hover { background: #64748b; }
-        .leaderboard-item { display: flex; justify-content: space-between; padding: 8px; background: #0f172a; margin-top: 5px; }
+        .header-panel { background: var(--card); padding: 20px; border-radius: 15px; text-align: center; border: 1px solid #334155; margin-bottom: 15px; }
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+        .stat-card { background: var(--card); padding: 15px; border-radius: 12px; text-align: center; border: 1px solid #334155; }
+        .stat-val { display: block; font-size: 1.2rem; font-weight: bold; color: var(--accent); }
+        .market-item { background: var(--card); padding: 15px; border-radius: 12px; border: 1px solid #334155; margin-bottom: 12px; }
+        .item-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .price-range { font-size: 0.8rem; color: #94a3b8; font-style: italic; }
+        .action-group { display: flex; gap: 10px; margin-top: 10px; }
+        select { flex: 1; background: #0f172a; color: white; border: 1px solid #475569; padding: 8px; border-radius: 6px; }
+        .btn { border: none; padding: 10px 15px; border-radius: 6px; color: white; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        .btn-buy { background: var(--buy); flex: 1; }
+        .btn-sell { background: var(--sell); flex: 1; }
+        .btn-main { width: 100%; padding: 15px; margin-top: 10px; background: var(--btn); font-size: 1rem; text-transform: uppercase; }
+        .btn-upgrade { width: 100%; padding: 12px; background: var(--upgrade); margin-top: 5px; font-weight: bold; }
+        .banner { background: #1e293b; padding: 15px; text-align: center; border-radius: 10px; margin-top: 15px; border: 1px solid var(--accent); cursor: pointer; color: var(--accent); font-weight: bold; }
+        .save-section { background: var(--card); padding: 20px; border-radius: 15px; margin-top: 15px; border: 1px solid #334155; }
+        .leaderboard-item { display: flex; justify-content: space-between; padding: 8px; background: #0f172a; margin-top: 5px; border-radius: 5px; }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Bazaar Tycoon</h1>
+        <div class="header-panel"><h1>Bazaar Tycoon</h1></div>
+        <div class="stats-grid">
+            <div class="stat-card">Day <span id="lblDay" class="stat-val">1/30</span></div>
+            <div class="stat-card">Cash <span id="lblCash" class="stat-val">$10,000</span></div>
+            <div class="stat-card">Debt <span id="lblDebt" class="stat-val">$0</span></div>
+            <div class="stat-card">Storage <span id="lblStorage" class="stat-val">0/100</span></div>
+        </div>
         <div id="marketTable"></div>
+        <button class="btn btn-upgrade" onclick="upgradeStorage()">📦 Upgrade Storage (+$500)</button>
+        <button class="btn btn-main" onclick="nextDay()">Next Day ➔</button>
+        <div class="banner" onclick="watchAd()">📺 Watch Ad for +$1000</div>
         <div class="save-section">
+            <h3>🏆 Save Your Score</h3>
+            <input type="text" id="playerName" style="width:100%; padding:10px; margin-bottom:10px; border-radius:6px; background:#0f172a; color:white; border:1px solid #475569;">
+            <button class="btn btn-buy" style="width:100%" onclick="saveScore()">Save Current Score</button>
             <h3>🥇 Global Leaderboard</h3>
             <div id="leaderboard"><em>Loading...</em></div>
-            <button class="btn-toggle" onclick="window.toggleLeaderboard()">Show/Hide All (Top 100)</button>
         </div>
+        <button id="toggleBtn" class="btn" style="width:100%; margin-top:15px; background:#e11d48; pointer-events: auto !important; z-index: 9999; position: relative;">Show/Hide All (Top 100)</button>
     </div>
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
-    import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-database.js";
+    import { getDatabase, ref, onValue, push } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-database.js";
     
+    const gameState = { day: 1, cash: 10000, debt: 0, storage: 0, maxStorage: 100, 
+        products: { 
+            coffee: { name: "☕ Coffee", price: 50, min: 20, max: 100, qty: 0 },
+            textiles: { name: "👕 Textiles", price: 200, min: 100, max: 400, qty: 0 },
+            gadgets: { name: "💻 Gadgets", price: 800, min: 400, max: 1600, qty: 0 },
+            electronics: { name: "📱 Electronics", price: 2500, min: 1000, max: 5000, qty: 0 },
+            gold: { name: "💰 Gold", price: 15000, min: 8000, max: 25000, qty: 0 }
+        }
+    };
     const db = getDatabase(initializeApp({ apiKey: "AIzaSyD7ZocVE8OyDbVSwE668zpgxeUJH1CLIsU", databaseURL: "https://bazaartycoon-e8fad-default-rtdb.asia-southeast1.firebasedatabase.app", projectId: "bazaartycoon-e8fad" }));
     
     let allScores = [];
     let showAll = false;
 
-    // Fonksiyonu window nesnesine açıkça bağladım
-    window.toggleLeaderboard = () => { 
-        showAll = !showAll; 
-        renderLeaderboard(); 
-    };
+    window.toggleLeaderboard = () => { showAll = !showAll; renderLeaderboard(); };
+    window.nextDay = () => { if(gameState.day >= 30) return alert("Game Over!"); gameState.day++; Object.keys(gameState.products).forEach(k => gameState.products[k].price = Math.floor(Math.random() * (gameState.products[k].max - gameState.products[k].min + 1)) + gameState.products[k].min); updateUI(); };
+    window.upgradeStorage = () => { if(gameState.cash >= 500) { gameState.cash -= 500; gameState.maxStorage += 50; updateUI(); } else alert("Insufficient Cash!"); };
+    window.watchAd = () => { gameState.cash += 1000; updateUI(); };
+    window.saveScore = () => { push(ref(db, 'scores'), { name: document.getElementById('playerName').value, score: gameState.cash }); alert("Saved!"); };
 
     function renderLeaderboard() {
         const board = document.getElementById('leaderboard');
         board.innerHTML = "";
         let limit = showAll ? 100 : 5;
-        allScores.slice(0, limit).forEach(s => {
-            board.innerHTML += `<div class="leaderboard-item"><span>${s.name}</span> <b>$${s.score.toLocaleString()}</b></div>`;
-        });
+        allScores.slice(0, limit).forEach(s => board.innerHTML += `<div class="leaderboard-item"><span>${s.name}</span> <b>$${s.score.toLocaleString()}</b></div>`);
     }
 
-    onValue(ref(db, 'scores'), (s) => { 
-        allScores = []; 
-        s.forEach(c => allScores.push(c.val())); 
-        allScores.sort((a,b) => b.score - a.score); 
-        renderLeaderboard(); 
-    });
+    function updateUI() {
+        document.getElementById('lblDay').innerText = `${gameState.day}/30`;
+        document.getElementById('lblCash').innerText = `$${gameState.cash.toLocaleString()}`;
+        document.getElementById('lblStorage').innerText = `${gameState.storage}/${gameState.maxStorage}`;
+        let html = "";
+        for(let k in gameState.products) {
+            let p = gameState.products[k];
+            let val = localStorage.getItem(`qty-${k}`) || "1";
+            html += `<div class="market-item"><div class="item-row"><strong>${p.name}</strong> <span>Qty: ${p.qty}</span></div>
+            <div class="price-range">Price: $${p.price} (Range: $${p.min} - $${p.max})</div>
+            <div class="action-group"><select id="qty-${k}" onchange="localStorage.setItem('qty-${k}', this.value)">
+            <option value="1" ${val==='1'?'selected':''}>1</option><option value="5" ${val==='5'?'selected':''}>5</option>
+            <option value="10" ${val==='10'?'selected':''}>10</option><option value="MAX" ${val==='MAX'?'selected':''}>MAX</option></select>
+            <button class="btn btn-buy" onclick="buy('${k}')">Buy</button><button class="btn btn-sell" onclick="sell('${k}')">Sell</button></div></div>`;
+        }
+        document.getElementById('marketTable').innerHTML = html;
+    }
+
+    window.buy = (k) => { let q = document.getElementById(`qty-${k}`).value === "MAX" ? Math.min(gameState.maxStorage - gameState.storage, Math.floor(gameState.cash / gameState.products[k].price)) : parseInt(document.getElementById(`qty-${k}`).value); if(gameState.storage + q <= gameState.maxStorage && gameState.cash >= gameState.products[k].price * q) { gameState.cash -= (gameState.products[k].price * q); gameState.products[k].qty += q; gameState.storage += q; updateUI(); } };
+    window.sell = (k) => { let q = document.getElementById(`qty-${k}`).value === "MAX" ? gameState.products[k].qty : parseInt(document.getElementById(`qty-${k}`).value); if(gameState.products[k].qty >= q) { gameState.cash += (gameState.products[k].price * q); gameState.products[k].qty -= q; gameState.storage -= q; updateUI(); } };
+
+    // Butonu en kesin şekilde burada bağlıyoruz
+    document.getElementById('toggleBtn').onclick = () => window.toggleLeaderboard();
+
+    onValue(ref(db, 'scores'), (s) => { allScores = []; s.forEach(c => allScores.push(c.val())); allScores.sort((a,b) => b.score - a.score); renderLeaderboard(); });
+    document.getElementById('playerName').value = `Player #${Math.floor(1000 + Math.random() * 9000)}`;
+    updateUI();
 </script>
 </body>
 </html>
