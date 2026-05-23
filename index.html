@@ -42,51 +42,36 @@
         <div class="banner" onclick="watchAd()">📺 Watch Ad for +$1000</div>
         <div class="save-section">
             <h3>🏆 Save Your Score</h3>
-            <input type="text" id="playerName" value="" style="width:100%; padding:10px; margin-bottom:10px; border-radius:6px; background:#0f172a; color:white; border:1px solid #475569;">
+            <input type="text" id="playerName" style="width:100%; padding:10px; margin-bottom:10px; border-radius:6px; background:#0f172a; color:white; border:1px solid #475569;">
             <button class="btn btn-buy" style="width:100%" onclick="saveScore()">Save Current Score</button>
             <h3>🥇 Global Leaderboard</h3>
-            <div id="leaderboard"><em>Loading scores...</em></div>
+            <div id="leaderboard"><em>Loading...</em></div>
+            <button class="btn" style="width:100%; margin-top:10px; background:#475569" onclick="toggleLeaderboard()">Show/Hide All (Top 100)</button>
         </div>
     </div>
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
-    import { getDatabase, ref, push, onValue, query, orderByChild, limitToLast } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-database.js";
+    import { getDatabase, ref, onValue, push } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-database.js";
     
-    // Global State
-    const gameState = { day: 1, cash: 10000, debt: 0, storage: 0, maxStorage: 100, 
-        products: { 
-            coffee: { name: "☕ Coffee", price: 50, min: 20, max: 100, qty: 0 },
-            textiles: { name: "👕 Textiles", price: 200, min: 100, max: 400, qty: 0 },
-            gadgets: { name: "💻 Gadgets", price: 800, min: 400, max: 1600, qty: 0 },
-            electronics: { name: "📱 Electronics", price: 2500, min: 1000, max: 5000, qty: 0 },
-            gold: { name: "💰 Gold", price: 15000, min: 8000, max: 25000, qty: 0 }
-        }
-    };
-
+    const gameState = { day: 1, cash: 10000, debt: 0, storage: 0, maxStorage: 100, products: { coffee: { name: "☕ Coffee", price: 50, min: 20, max: 100, qty: 0 }, textiles: { name: "👕 Textiles", price: 200, min: 100, max: 400, qty: 0 }, gadgets: { name: "💻 Gadgets", price: 800, min: 400, max: 1600, qty: 0 }, electronics: { name: "📱 Electronics", price: 2500, min: 1000, max: 5000, qty: 0 }, gold: { name: "💰 Gold", price: 15000, min: 8000, max: 25000, qty: 0 } } };
     const db = getDatabase(initializeApp({ apiKey: "AIzaSyD7ZocVE8OyDbVSwE668zpgxeUJH1CLIsU", databaseURL: "https://bazaartycoon-e8fad-default-rtdb.asia-southeast1.firebasedatabase.app", projectId: "bazaartycoon-e8fad" }));
+    
+    let allScores = [];
+    let showAll = false;
 
-    // Init Logic
-    document.getElementById('playerName').value = `Player #${Math.floor(1000 + Math.random() * 9000)}`;
-
-    // Core Engines
-    window.nextDay = () => { 
-        if (gameState.day >= 30) {
-            alert("Game Over! You have reached the 30-day limit.");
-            return;
-        }
-        gameState.day++; 
-        Object.keys(gameState.products).forEach(k => { 
-            let p = gameState.products[k]; 
-            p.price = Math.floor(Math.random() * (p.max - p.min + 1)) + p.min; 
-        }); 
-        updateUI(); 
-    };
-
-    window.upgradeStorage = () => { if(gameState.cash >= 500) { gameState.cash -= 500; gameState.maxStorage += 50; updateUI(); } else alert("Insufficient Cash!"); };
+    window.toggleLeaderboard = () => { showAll = !showAll; renderLeaderboard(); };
+    window.nextDay = () => { if(gameState.day >= 30) return alert("Game Over!"); gameState.day++; Object.keys(gameState.products).forEach(k => gameState.products[k].price = Math.floor(Math.random() * (gameState.products[k].max - gameState.products[k].min + 1)) + gameState.products[k].min); updateUI(); };
+    window.upgradeStorage = () => { if(gameState.cash >= 500) { gameState.cash -= 500; gameState.maxStorage += 50; updateUI(); } };
     window.watchAd = () => { gameState.cash += 1000; updateUI(); };
-    window.saveScore = () => { push(ref(db, 'scores'), { name: document.getElementById('playerName').value, score: gameState.cash, date: Date.now() }); alert("Score Saved!"); };
+    window.saveScore = () => { push(ref(db, 'scores'), { name: document.getElementById('playerName').value, score: gameState.cash }); alert("Saved!"); };
 
-    // UI Renderer
+    function renderLeaderboard() {
+        const board = document.getElementById('leaderboard');
+        board.innerHTML = "";
+        let limit = showAll ? 100 : 5;
+        allScores.slice(0, limit).forEach(s => board.innerHTML += `<div class="leaderboard-item"><span>${s.name}</span> <b>$${s.score.toLocaleString()}</b></div>`);
+    }
+
     function updateUI() {
         document.getElementById('lblDay').innerText = `${gameState.day}/30`;
         document.getElementById('lblCash').innerText = `$${gameState.cash.toLocaleString()}`;
@@ -94,48 +79,16 @@
         let html = "";
         for(let k in gameState.products) {
             let p = gameState.products[k];
-            let savedQty = localStorage.getItem(`qty-${k}`) || "1";
-            html += `<div class="market-item"><div class="item-row"><strong>${p.name}</strong> <span>Owned: ${p.qty}</span></div>
-                <div class="price-range">Price: $${p.price}</div>
-                <div class="action-group">
-                    <select id="qty-${k}" onchange="localStorage.setItem('qty-${k}', this.value)">
-                        <option value="1" ${savedQty==='1'?'selected':''}>1</option><option value="5" ${savedQty==='5'?'selected':''}>5</option>
-                        <option value="10" ${savedQty==='10'?'selected':''}>10</option><option value="MAX" ${savedQty==='MAX'?'selected':''}>MAX</option>
-                    </select>
-                    <button class="btn btn-buy" onclick="buy('${k}')">Buy</button>
-                    <button class="btn btn-sell" onclick="sell('${k}')">Sell</button>
-                </div></div>`;
+            html += `<div class="market-item"><div class="item-row"><strong>${p.name}</strong> <span>Qty: ${p.qty}</span></div><div class="price-range">Price: $${p.price}</div><div class="action-group"><select id="qty-${k}"><option value="1">1</option><option value="5">5</option><option value="MAX">MAX</option></select><button class="btn btn-buy" onclick="buy('${k}')">Buy</button><button class="btn btn-sell" onclick="sell('${k}')">Sell</button></div></div>`;
         }
         document.getElementById('marketTable').innerHTML = html;
     }
 
-    // Transaction Engine
-    window.buy = (k) => { 
-        let val = document.getElementById(`qty-${k}`).value;
-        let p = gameState.products[k];
-        let q = val === "MAX" ? Math.min(gameState.maxStorage - gameState.storage, Math.floor(gameState.cash / p.price)) : parseInt(val);
-        if(gameState.storage + q <= gameState.maxStorage && gameState.cash >= p.price * q) { gameState.cash -= (p.price * q); p.qty += q; gameState.storage += q; updateUI(); } 
-    };
+    window.buy = (k) => { let q = document.getElementById(`qty-${k}`).value === "MAX" ? Math.min(gameState.maxStorage - gameState.storage, Math.floor(gameState.cash / gameState.products[k].price)) : parseInt(document.getElementById(`qty-${k}`).value); if(gameState.storage + q <= gameState.maxStorage && gameState.cash >= gameState.products[k].price * q) { gameState.cash -= (gameState.products[k].price * q); gameState.products[k].qty += q; gameState.storage += q; updateUI(); } };
+    window.sell = (k) => { let q = document.getElementById(`qty-${k}`).value === "MAX" ? gameState.products[k].qty : parseInt(document.getElementById(`qty-${k}`).value); if(gameState.products[k].qty >= q) { gameState.cash += (gameState.products[k].price * q); gameState.products[k].qty -= q; gameState.storage -= q; updateUI(); } };
 
-    window.sell = (k) => { 
-        let val = document.getElementById(`qty-${k}`).value;
-        let p = gameState.products[k];
-        let q = val === "MAX" ? p.qty : parseInt(val);
-        if(p.qty >= q) { gameState.cash += (p.price * q); p.qty -= q; gameState.storage -= q; updateUI(); }
-    };
-
-    // Leaderboard Listener
-    onValue(query(ref(db, 'scores'), orderByChild('score'), limitToLast(5)), (snapshot) => {
-        const leaderboard = document.getElementById('leaderboard');
-        leaderboard.innerHTML = "";
-        if(!snapshot.exists()) { leaderboard.innerHTML = "<em>No scores yet.</em>"; return; }
-        let scores = [];
-        snapshot.forEach(child => scores.push(child.val()));
-        scores.reverse().forEach(s => {
-            leaderboard.innerHTML += `<div class="leaderboard-item"><span>${s.name}</span> <b>$${s.score.toLocaleString()}</b></div>`;
-        });
-    });
-
+    onValue(ref(db, 'scores'), (s) => { allScores = []; s.forEach(c => allScores.push(c.val())); allScores.sort((a,b) => b.score - a.score); renderLeaderboard(); });
+    document.getElementById('playerName').value = `Player #${Math.floor(1000 + Math.random() * 9000)}`;
     updateUI();
 </script>
 </body>
