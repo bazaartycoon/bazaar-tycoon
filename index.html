@@ -22,6 +22,7 @@
         .btn-sell { background: var(--sell); flex: 1; }
         .btn-main { width: 100%; padding: 15px; margin-top: 10px; background: var(--btn); font-size: 1rem; text-transform: uppercase; }
         .btn-upgrade { width: 100%; padding: 12px; background: var(--upgrade); margin-top: 5px; font-weight: bold; }
+        .banner { background: #1e293b; padding: 15px; text-align: center; border-radius: 10px; margin-top: 15px; border: 1px solid var(--accent); cursor: pointer; color: var(--accent); font-weight: bold; }
         .save-section { background: var(--card); padding: 20px; border-radius: 15px; margin-top: 15px; border: 1px solid #334155; }
         .leaderboard-item { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid #334155; }
     </style>
@@ -38,6 +39,7 @@
         <div id="marketTable"></div>
         <button class="btn btn-upgrade" onclick="upgradeStorage()">📦 Upgrade Storage (+$500)</button>
         <button class="btn btn-main" onclick="nextDay()">Next Day ➔</button>
+        <div class="banner" onclick="watchAd()">📺 Watch Ad for +$1000</div>
         <div class="save-section">
             <h3>🏆 Save Your Score (Player: <span id="displayName">Nusret</span>)</h3>
             <button class="btn btn-buy" style="width:100%" onclick="saveScore()">Save Current Score</button>
@@ -49,7 +51,7 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
     import { getDatabase, ref, push, onValue, query, orderByChild, limitToLast } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-database.js";
     
-    // --- GLOABL STATE CONFIGURATION ---
+    // Global Config
     const gameState = { day: 1, cash: 10000, debt: 0, storage: 0, maxStorage: 100, playerName: "Nusret", 
         products: { 
             coffee: { name: "☕ Coffee", price: 50, min: 20, max: 100, qty: 0 },
@@ -60,15 +62,15 @@
         }
     };
 
-    // --- DATABASE INITIALIZATION ---
     const db = getDatabase(initializeApp({ apiKey: "AIzaSyD7ZocVE8OyDbVSwE668zpgxeUJH1CLIsU", databaseURL: "https://bazaartycoon-e8fad-default-rtdb.asia-southeast1.firebasedatabase.app", projectId: "bazaartycoon-e8fad" }));
 
-    // --- GAME ENGINE FUNCTIONS ---
+    // Core Engines
     window.nextDay = () => { gameState.day++; Object.keys(gameState.products).forEach(k => { let p = gameState.products[k]; p.price = Math.floor(Math.random() * (p.max - p.min + 1)) + p.min; }); updateUI(); };
     window.upgradeStorage = () => { if(gameState.cash >= 500) { gameState.cash -= 500; gameState.maxStorage += 50; updateUI(); } else alert("Insufficient Cash!"); };
+    window.watchAd = () => { gameState.cash += 1000; updateUI(); };
     window.saveScore = () => { push(ref(db, 'scores'), { name: gameState.playerName, score: gameState.cash, date: Date.now() }); alert("Score Saved!"); };
 
-    // --- UI UPDATER ENGINE ---
+    // UI Renderer
     function updateUI() {
         document.getElementById('lblDay').innerText = `${gameState.day}/30`;
         document.getElementById('lblCash').innerText = `$${gameState.cash.toLocaleString()}`;
@@ -91,7 +93,7 @@
         document.getElementById('marketTable').innerHTML = html;
     }
 
-    // --- TRANSACTION LOGIC ---
+    // Transaction Engine
     window.buy = (k) => { 
         let val = document.getElementById(`qty-${k}`).value;
         let p = gameState.products[k];
@@ -106,13 +108,12 @@
         if(p.qty >= q) { gameState.cash += (p.price * q); p.qty -= q; gameState.storage -= q; updateUI(); }
     };
 
-    // --- LEADERBOARD LISTENER ---
+    // Firebase Listener
     onValue(query(ref(db, 'scores'), orderByChild('score'), limitToLast(5)), (s) => {
         let html = ""; s.forEach(c => html += `<div class="leaderboard-item"><span>${c.val().name}</span> <b>$${c.val().score.toLocaleString()}</b></div>`);
         document.getElementById('leaderboard').innerHTML = html;
     });
 
-    // --- INITIAL RENDER ---
     document.getElementById('displayName').innerText = gameState.playerName;
     updateUI();
 </script>
