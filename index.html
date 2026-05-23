@@ -22,41 +22,35 @@
         .btn-sell { background: var(--sell); flex: 1; }
         .btn-main { width: 100%; padding: 15px; margin-top: 10px; background: var(--btn); font-size: 1rem; text-transform: uppercase; }
         .btn-upgrade { width: 100%; padding: 12px; background: var(--upgrade); margin-top: 5px; font-weight: bold; }
-        .banner { background: #1e293b; padding: 15px; text-align: center; border-radius: 10px; margin-top: 15px; border: 1px solid var(--accent); cursor: pointer; }
         .save-section { background: var(--card); padding: 20px; border-radius: 15px; margin-top: 15px; border: 1px solid #334155; }
-        .leaderboard-list { margin-top: 10px; font-size: 0.95rem; }
+        .leaderboard-item { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid #334155; }
     </style>
 </head>
 <body>
-<div class="container">
-    <div class="header-panel"><h1>Bazaar Tycoon</h1></div>
-    <div class="stats-grid">
-        <div class="stat-card">Day <span id="lblDay" class="stat-val">1/30</span></div>
-        <div class="stat-card">Cash <span id="lblCash" class="stat-val">$10,000</span></div>
-        <div class="stat-card">Debt <span id="lblDebt" class="stat-val">$0</span></div>
-        <div class="stat-card">Storage <span id="lblStorage" class="stat-val">0/100</span></div>
+    <div class="container">
+        <div class="header-panel"><h1>Bazaar Tycoon</h1></div>
+        <div class="stats-grid">
+            <div class="stat-card">Day <span id="lblDay" class="stat-val">1/30</span></div>
+            <div class="stat-card">Cash <span id="lblCash" class="stat-val">$10,000</span></div>
+            <div class="stat-card">Debt <span id="lblDebt" class="stat-val">$0</span></div>
+            <div class="stat-card">Storage <span id="lblStorage" class="stat-val">0/100</span></div>
+        </div>
+        <div id="marketTable"></div>
+        <button class="btn btn-upgrade" onclick="upgradeStorage()">📦 Upgrade Storage (+$500)</button>
+        <button class="btn btn-main" onclick="nextDay()">Next Day ➔</button>
+        <div class="save-section">
+            <h3>🏆 Save Your Score (Player: <span id="displayName">Nusret</span>)</h3>
+            <button class="btn btn-buy" style="width:100%" onclick="saveScore()">Save Current Score</button>
+            <h3>🥇 Global Leaderboard</h3>
+            <div id="leaderboard"></div>
+        </div>
     </div>
-    <div id="marketTable"></div>
-    <button class="btn btn-upgrade" onclick="upgradeStorage()">📦 Upgrade Storage (+$500)</button>
-    <button class="btn btn-main" onclick="nextDay()">Next Day ➔</button>
-    <div class="banner" onclick="watchAd()">📺 Watch Ad for +$1000</div>
-    <div class="save-section">
-        <h3>🏆 Save Your Score</h3>
-        <input type="text" id="playerName" placeholder="Player Name" style="width:100%; padding:10px; border-radius:6px; background:#0f172a; color:white; border:1px solid #475569; box-sizing:border-box;">
-        <button class="btn btn-buy" style="width:100%; margin-top:10px" onclick="saveScore()">Save Score</button>
-        <h3>🥇 Global Leaderboard</h3>
-        <div id="leaderboard" class="leaderboard-list">Loading...</div>
-    </div>
-    <footer style="text-align:center; padding:20px; color:#64748b; font-size:0.8rem;">
-        © 2026 Bazaar Tycoon - All Rights Reserved
-    </footer>
-</div>
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
     import { getDatabase, ref, push, onValue, query, orderByChild, limitToLast } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-database.js";
     
-    const gameState = { 
-        day: 1, cash: 10000, debt: 0, storage: 0, maxStorage: 100, 
+    // --- GLOABL STATE CONFIGURATION ---
+    const gameState = { day: 1, cash: 10000, debt: 0, storage: 0, maxStorage: 100, playerName: "Nusret", 
         products: { 
             coffee: { name: "☕ Coffee", price: 50, min: 20, max: 100, qty: 0 },
             textiles: { name: "👕 Textiles", price: 200, min: 100, max: 400, qty: 0 },
@@ -66,75 +60,60 @@
         }
     };
 
+    // --- DATABASE INITIALIZATION ---
     const db = getDatabase(initializeApp({ apiKey: "AIzaSyD7ZocVE8OyDbVSwE668zpgxeUJH1CLIsU", databaseURL: "https://bazaartycoon-e8fad-default-rtdb.asia-southeast1.firebasedatabase.app", projectId: "bazaartycoon-e8fad" }));
 
-    window.nextDay = () => { 
-        gameState.day++; 
-        Object.keys(gameState.products).forEach(k => {
-            let p = gameState.products[k];
-            p.price = Math.floor(Math.random() * (p.max - p.min + 1)) + p.min;
-        });
-        updateUI(); 
-    };
-
+    // --- GAME ENGINE FUNCTIONS ---
+    window.nextDay = () => { gameState.day++; Object.keys(gameState.products).forEach(k => { let p = gameState.products[k]; p.price = Math.floor(Math.random() * (p.max - p.min + 1)) + p.min; }); updateUI(); };
     window.upgradeStorage = () => { if(gameState.cash >= 500) { gameState.cash -= 500; gameState.maxStorage += 50; updateUI(); } else alert("Insufficient Cash!"); };
-    window.watchAd = () => { gameState.cash += 1000; updateUI(); };
-    window.saveScore = () => { push(ref(db, 'scores'), { name: document.getElementById('playerName').value || "Anonymous", score: gameState.cash, date: Date.now() }); alert("Score Saved!"); };
+    window.saveScore = () => { push(ref(db, 'scores'), { name: gameState.playerName, score: gameState.cash, date: Date.now() }); alert("Score Saved!"); };
 
+    // --- UI UPDATER ENGINE ---
     function updateUI() {
         document.getElementById('lblDay').innerText = `${gameState.day}/30`;
         document.getElementById('lblCash').innerText = `$${gameState.cash.toLocaleString()}`;
-        document.getElementById('lblDebt').innerText = `$${gameState.debt.toLocaleString()}`;
         document.getElementById('lblStorage').innerText = `${gameState.storage}/${gameState.maxStorage}`;
-        
         let html = "";
         for(let k in gameState.products) {
             let p = gameState.products[k];
-            html += `
-                <div class="market-item">
-                    <div class="item-row"><strong>${p.name}</strong> <span>Owned: ${p.qty}</span></div>
-                    <div class="price-range">Price: $${p.price} | Range: $${p.min}-$${p.max}</div>
-                    <div class="action-group">
-                        <select id="qty-${k}">
-                            <option value="1">1</option><option value="5">5</option>
-                            <option value="10">10</option><option value="999">MAX</option>
-                        </select>
-                        <button class="btn btn-buy" onclick="buy('${k}')">Buy</button>
-                        <button class="btn btn-sell" onclick="sell('${k}')">Sell</button>
-                    </div>
-                </div>`;
+            let savedQty = localStorage.getItem(`qty-${k}`) || "1";
+            html += `<div class="market-item"><div class="item-row"><strong>${p.name}</strong> <span>Owned: ${p.qty}</span></div>
+                <div class="price-range">Price: $${p.price}</div>
+                <div class="action-group">
+                    <select id="qty-${k}" onchange="localStorage.setItem('qty-${k}', this.value)">
+                        <option value="1" ${savedQty==='1'?'selected':''}>1</option><option value="5" ${savedQty==='5'?'selected':''}>5</option>
+                        <option value="10" ${savedQty==='10'?'selected':''}>10</option><option value="MAX" ${savedQty==='MAX'?'selected':''}>MAX</option>
+                    </select>
+                    <button class="btn btn-buy" onclick="buy('${k}')">Buy</button>
+                    <button class="btn btn-sell" onclick="sell('${k}')">Sell</button>
+                </div></div>`;
         }
         document.getElementById('marketTable').innerHTML = html;
     }
 
+    // --- TRANSACTION LOGIC ---
     window.buy = (k) => { 
-        let q = parseInt(document.getElementById(`qty-${k}`).value);
-        if(q === 999) q = gameState.maxStorage - gameState.storage;
-        if(gameState.storage + q <= gameState.maxStorage && gameState.cash >= gameState.products[k].price * q) {
-            gameState.cash -= (gameState.products[k].price * q);
-            gameState.products[k].qty += q;
-            gameState.storage += q;
-            updateUI();
-        } else alert("Storage Full or Insufficient Cash!");
+        let val = document.getElementById(`qty-${k}`).value;
+        let p = gameState.products[k];
+        let q = val === "MAX" ? Math.min(gameState.maxStorage - gameState.storage, Math.floor(gameState.cash / p.price)) : parseInt(val);
+        if(gameState.storage + q <= gameState.maxStorage && gameState.cash >= p.price * q) { gameState.cash -= (p.price * q); p.qty += q; gameState.storage += q; updateUI(); } 
     };
 
     window.sell = (k) => { 
-        let q = parseInt(document.getElementById(`qty-${k}`).value);
-        if(q === 999) q = gameState.products[k].qty;
-        if(gameState.products[k].qty >= q) {
-            gameState.cash += (gameState.products[k].price * q);
-            gameState.products[k].qty -= q;
-            gameState.storage -= q;
-            updateUI();
-        }
+        let val = document.getElementById(`qty-${k}`).value;
+        let p = gameState.products[k];
+        let q = val === "MAX" ? p.qty : parseInt(val);
+        if(p.qty >= q) { gameState.cash += (p.price * q); p.qty -= q; gameState.storage -= q; updateUI(); }
     };
 
+    // --- LEADERBOARD LISTENER ---
     onValue(query(ref(db, 'scores'), orderByChild('score'), limitToLast(5)), (s) => {
-        let html = ""; 
-        s.forEach(c => html += `<div class="leaderboard-item"><span>${c.val().name}</span> <b>$${c.val().score.toLocaleString()}</b></div>`);
+        let html = ""; s.forEach(c => html += `<div class="leaderboard-item"><span>${c.val().name}</span> <b>$${c.val().score.toLocaleString()}</b></div>`);
         document.getElementById('leaderboard').innerHTML = html;
     });
 
+    // --- INITIAL RENDER ---
+    document.getElementById('displayName').innerText = gameState.playerName;
     updateUI();
 </script>
 </body>
