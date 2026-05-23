@@ -7,9 +7,10 @@
         :root { --bg: #0b1120; --card: #1e293b; --accent: #38bdf8; --text: #f1f5f9; }
         body { font-family: sans-serif; background: var(--bg); color: var(--text); padding: 20px; }
         .container { max-width: 600px; margin: auto; }
-        .btn { width: 100%; padding: 15px; margin-top: 10px; border: none; border-radius: 8px; color: white; font-weight: bold; cursor: pointer; display: block; }
+        .market-item { background: var(--card); padding: 15px; border-radius: 12px; margin-bottom: 10px; border: 1px solid #334155; }
+        .btn { width: 100%; padding: 15px; margin-top: 10px; border: none; border-radius: 8px; color: white; font-weight: bold; cursor: pointer; pointer-events: auto !important; }
         .btn:active { transform: scale(0.98); }
-        .save-section { background: var(--card); padding: 20px; border-radius: 15px; margin-top: 20px; border: 1px solid #334155; }
+        .save-section { background: var(--card); padding: 20px; border-radius: 15px; margin-top: 20px; }
         .leaderboard-item { display: flex; justify-content: space-between; padding: 10px; background: #0f172a; margin-top: 5px; border-radius: 5px; }
     </style>
 </head>
@@ -20,6 +21,11 @@
             Cash: $<span id="lblCash">10,000</span> | Storage: <span id="lblStorage">0/100</span>
         </div>
         
+        <div id="marketTable">
+            <div class="market-item">☕ Coffee - $50 <button onclick="buy('coffee')">Buy</button></div>
+            <div class="market-item">👕 Textiles - $200 <button onclick="buy('textiles')">Buy</button></div>
+        </div>
+
         <button class="btn" style="background:#f59e0b" onclick="upgradeStorage()">📦 Upgrade Storage (-$1000, +10 Space)</button>
         <button class="btn" style="background:#4f46e5" onclick="nextDay()">Next Day ➔</button>
         <button class="btn" style="background:#0891b2" onclick="watchAd()">📺 Watch Ad for +$1000</button>
@@ -41,9 +47,10 @@
         let allScores = [];
         let showAll = false;
 
-        window.upgradeStorage = () => { if(window.gameState.cash >= 1000) { window.gameState.cash -= 1000; window.gameState.maxStorage += 10; updateUI(); } else { alert("Yetersiz bakiye!"); } };
+        window.upgradeStorage = () => { if(window.gameState.cash >= 1000) { window.gameState.cash -= 1000; window.gameState.maxStorage += 10; updateUI(); } else alert("Yetersiz bakiye!"); };
         window.watchAd = () => { window.gameState.cash += 1000; updateUI(); };
         window.nextDay = () => { window.gameState.day++; updateUI(); };
+        window.buy = (item) => { alert(item + " satın alındı!"); };
         window.toggleLeaderboard = () => { showAll = !showAll; renderLeaderboard(); };
 
         function renderLeaderboard() {
