@@ -61,7 +61,7 @@
 
     window.toggleLeaderboard = () => { showAll = !showAll; renderLeaderboard(); };
     window.nextDay = () => { if(gameState.day >= 30) return alert("Game Over!"); gameState.day++; Object.keys(gameState.products).forEach(k => gameState.products[k].price = Math.floor(Math.random() * (gameState.products[k].max - gameState.products[k].min + 1)) + gameState.products[k].min); updateUI(); };
-    window.upgradeStorage = () => { if(gameState.cash >= 500) { gameState.cash -= 500; gameState.maxStorage += 50; updateUI(); } };
+    window.upgradeStorage = () => { if(gameState.cash >= 500) { gameState.cash -= 500; gameState.maxStorage += 50; updateUI(); } else alert("Insufficient Cash!"); };
     window.watchAd = () => { gameState.cash += 1000; updateUI(); };
     window.saveScore = () => { push(ref(db, 'scores'), { name: document.getElementById('playerName').value, score: gameState.cash }); alert("Saved!"); };
 
@@ -79,7 +79,8 @@
         let html = "";
         for(let k in gameState.products) {
             let p = gameState.products[k];
-            html += `<div class="market-item"><div class="item-row"><strong>${p.name}</strong> <span>Qty: ${p.qty}</span></div><div class="price-range">Price: $${p.price}</div><div class="action-group"><select id="qty-${k}"><option value="1">1</option><option value="5">5</option><option value="MAX">MAX</option></select><button class="btn btn-buy" onclick="buy('${k}')">Buy</button><button class="btn btn-sell" onclick="sell('${k}')">Sell</button></div></div>`;
+            let val = localStorage.getItem(`qty-${k}`) || "1";
+            html += `<div class="market-item"><div class="item-row"><strong>${p.name}</strong> <span>Qty: ${p.qty}</span></div><div class="price-range">Price: $${p.price}</div><div class="action-group"><select id="qty-${k}" onchange="localStorage.setItem('qty-${k}', this.value)"><option value="1" ${val==='1'?'selected':''}>1</option><option value="5" ${val==='5'?'selected':''}>5</option><option value="10" ${val==='10'?'selected':''}>10</option><option value="MAX" ${val==='MAX'?'selected':''}>MAX</option></select><button class="btn btn-buy" onclick="buy('${k}')">Buy</button><button class="btn btn-sell" onclick="sell('${k}')">Sell</button></div></div>`;
         }
         document.getElementById('marketTable').innerHTML = html;
     }
