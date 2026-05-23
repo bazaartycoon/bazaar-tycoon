@@ -53,7 +53,15 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
     import { getDatabase, ref, onValue, push } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-database.js";
     
-    const gameState = { day: 1, cash: 10000, debt: 0, storage: 0, maxStorage: 100, products: { coffee: { name: "☕ Coffee", price: 50, min: 20, max: 100, qty: 0 }, textiles: { name: "👕 Textiles", price: 200, min: 100, max: 400, qty: 0 }, gadgets: { name: "💻 Gadgets", price: 800, min: 400, max: 1600, qty: 0 }, electronics: { name: "📱 Electronics", price: 2500, min: 1000, max: 5000, qty: 0 }, gold: { name: "💰 Gold", price: 15000, min: 8000, max: 25000, qty: 0 } } };
+    const gameState = { day: 1, cash: 10000, debt: 0, storage: 0, maxStorage: 100, 
+        products: { 
+            coffee: { name: "☕ Coffee", price: 50, min: 20, max: 100, qty: 0 },
+            textiles: { name: "👕 Textiles", price: 200, min: 100, max: 400, qty: 0 },
+            gadgets: { name: "💻 Gadgets", price: 800, min: 400, max: 1600, qty: 0 },
+            electronics: { name: "📱 Electronics", price: 2500, min: 1000, max: 5000, qty: 0 },
+            gold: { name: "💰 Gold", price: 15000, min: 8000, max: 25000, qty: 0 }
+        }
+    };
     const db = getDatabase(initializeApp({ apiKey: "AIzaSyD7ZocVE8OyDbVSwE668zpgxeUJH1CLIsU", databaseURL: "https://bazaartycoon-e8fad-default-rtdb.asia-southeast1.firebasedatabase.app", projectId: "bazaartycoon-e8fad" }));
     
     let allScores = [];
@@ -80,7 +88,12 @@
         for(let k in gameState.products) {
             let p = gameState.products[k];
             let val = localStorage.getItem(`qty-${k}`) || "1";
-            html += `<div class="market-item"><div class="item-row"><strong>${p.name}</strong> <span>Qty: ${p.qty}</span></div><div class="price-range">Price: $${p.price}</div><div class="action-group"><select id="qty-${k}" onchange="localStorage.setItem('qty-${k}', this.value)"><option value="1" ${val==='1'?'selected':''}>1</option><option value="5" ${val==='5'?'selected':''}>5</option><option value="10" ${val==='10'?'selected':''}>10</option><option value="MAX" ${val==='MAX'?'selected':''}>MAX</option></select><button class="btn btn-buy" onclick="buy('${k}')">Buy</button><button class="btn btn-sell" onclick="sell('${k}')">Sell</button></div></div>`;
+            html += `<div class="market-item"><div class="item-row"><strong>${p.name}</strong> <span>Qty: ${p.qty}</span></div>
+            <div class="price-range">Price: $${p.price} (Range: $${p.min} - $${p.max})</div>
+            <div class="action-group"><select id="qty-${k}" onchange="localStorage.setItem('qty-${k}', this.value)">
+            <option value="1" ${val==='1'?'selected':''}>1</option><option value="5" ${val==='5'?'selected':''}>5</option>
+            <option value="10" ${val==='10'?'selected':''}>10</option><option value="MAX" ${val==='MAX'?'selected':''}>MAX</option></select>
+            <button class="btn btn-buy" onclick="buy('${k}')">Buy</button><button class="btn btn-sell" onclick="sell('${k}')">Sell</button></div></div>`;
         }
         document.getElementById('marketTable').innerHTML = html;
     }
