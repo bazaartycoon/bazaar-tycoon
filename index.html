@@ -42,7 +42,7 @@
         <div class="banner" onclick="watchAd()">📺 Watch Ad for +$1000</div>
         <div class="save-section">
             <h3>🏆 Save Your Score</h3>
-            <input type="text" id="playerName" value="Player #0000" style="width:100%; padding:10px; margin-bottom:10px; border-radius:6px; background:#0f172a; color:white; border:1px solid #475569;">
+            <input type="text" id="playerName" value="" style="width:100%; padding:10px; margin-bottom:10px; border-radius:6px; background:#0f172a; color:white; border:1px solid #475569;">
             <button class="btn btn-buy" style="width:100%" onclick="saveScore()">Save Current Score</button>
             <h3>🥇 Global Leaderboard</h3>
             <div id="leaderboard"><em>Loading scores...</em></div>
@@ -52,7 +52,7 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
     import { getDatabase, ref, push, onValue, query, orderByChild, limitToLast } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-database.js";
     
-    // Global Config
+    // Global State
     const gameState = { day: 1, cash: 10000, debt: 0, storage: 0, maxStorage: 100, 
         products: { 
             coffee: { name: "☕ Coffee", price: 50, min: 20, max: 100, qty: 0 },
@@ -63,14 +63,25 @@
         }
     };
 
-    // Database
     const db = getDatabase(initializeApp({ apiKey: "AIzaSyD7ZocVE8OyDbVSwE668zpgxeUJH1CLIsU", databaseURL: "https://bazaartycoon-e8fad-default-rtdb.asia-southeast1.firebasedatabase.app", projectId: "bazaartycoon-e8fad" }));
 
-    // Set Random Name
+    // Init Logic
     document.getElementById('playerName').value = `Player #${Math.floor(1000 + Math.random() * 9000)}`;
 
     // Core Engines
-    window.nextDay = () => { gameState.day++; Object.keys(gameState.products).forEach(k => { let p = gameState.products[k]; p.price = Math.floor(Math.random() * (p.max - p.min + 1)) + p.min; }); updateUI(); };
+    window.nextDay = () => { 
+        if (gameState.day >= 30) {
+            alert("Game Over! You have reached the 30-day limit.");
+            return;
+        }
+        gameState.day++; 
+        Object.keys(gameState.products).forEach(k => { 
+            let p = gameState.products[k]; 
+            p.price = Math.floor(Math.random() * (p.max - p.min + 1)) + p.min; 
+        }); 
+        updateUI(); 
+    };
+
     window.upgradeStorage = () => { if(gameState.cash >= 500) { gameState.cash -= 500; gameState.maxStorage += 50; updateUI(); } else alert("Insufficient Cash!"); };
     window.watchAd = () => { gameState.cash += 1000; updateUI(); };
     window.saveScore = () => { push(ref(db, 'scores'), { name: document.getElementById('playerName').value, score: gameState.cash, date: Date.now() }); alert("Score Saved!"); };
@@ -113,7 +124,7 @@
         if(p.qty >= q) { gameState.cash += (p.price * q); p.qty -= q; gameState.storage -= q; updateUI(); }
     };
 
-    // Firebase Listener - Fixed
+    // Leaderboard Listener
     onValue(query(ref(db, 'scores'), orderByChild('score'), limitToLast(5)), (snapshot) => {
         const leaderboard = document.getElementById('leaderboard');
         leaderboard.innerHTML = "";
