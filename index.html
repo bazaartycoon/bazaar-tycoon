@@ -1,80 +1,33 @@
 <!DOCTYPE html>
-<html lang="tr">
-<head>
-    <meta charset="UTF-8">
-    <title>Bazaar Tycoon Pro</title>
-    <style>
-        :root { --bg: #0b1120; --card: #1e293b; --accent: #38bdf8; --text: #f1f5f9; }
-        body { font-family: sans-serif; background: var(--bg); color: var(--text); padding: 20px; }
-        .container { max-width: 600px; margin: auto; }
-        .market-item { background: var(--card); padding: 15px; border-radius: 12px; margin-bottom: 10px; border: 1px solid #334155; }
-        .btn { width: 100%; padding: 15px; margin-top: 10px; border: none; border-radius: 8px; color: white; font-weight: bold; cursor: pointer; pointer-events: auto !important; }
-        .btn:active { transform: scale(0.98); }
-        .save-section { background: var(--card); padding: 20px; border-radius: 15px; margin-top: 20px; }
-        .leaderboard-item { display: flex; justify-content: space-between; padding: 10px; background: #0f172a; margin-top: 5px; border-radius: 5px; }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>Bazaar Tycoon</h1>
-        <div id="stats" style="margin-bottom:20px;">
-            Cash: $<span id="lblCash">10,000</span> | Storage: <span id="lblStorage">0/100</span>
-        </div>
-        
-        <div id="marketTable">
-            <div class="market-item">☕ Coffee - $50 <button onclick="buy('coffee')">Buy</button></div>
-            <div class="market-item">👕 Textiles - $200 <button onclick="buy('textiles')">Buy</button></div>
-        </div>
-
-        <button class="btn" style="background:#f59e0b" onclick="upgradeStorage()">📦 Upgrade Storage (-$1000, +10 Space)</button>
-        <button class="btn" style="background:#4f46e5" onclick="nextDay()">Next Day ➔</button>
-        <button class="btn" style="background:#0891b2" onclick="watchAd()">📺 Watch Ad for +$1000</button>
-
-        <div class="save-section">
-            <h3>🥇 Global Leaderboard</h3>
-            <div id="leaderboard"><em>Yükleniyor...</em></div>
-            <button id="toggleBtn" class="btn" style="background:#475569;">Show/Hide All (Top 100)</button>
-        </div>
-    </div>
-
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
-        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-database.js";
-
-        const db = getDatabase(initializeApp({ apiKey: "AIzaSyD7ZocVE8OyDbVSwE668zpgxeUJH1CLIsU", databaseURL: "https://bazaartycoon-e8fad-default-rtdb.asia-southeast1.firebasedatabase.app", projectId: "bazaartycoon-e8fad" }));
-
-        window.gameState = { cash: 10000, storage: 0, maxStorage: 100, day: 1 };
-        let allScores = [];
-        let showAll = false;
-
-        window.upgradeStorage = () => { if(window.gameState.cash >= 1000) { window.gameState.cash -= 1000; window.gameState.maxStorage += 10; updateUI(); } else alert("Yetersiz bakiye!"); };
-        window.watchAd = () => { window.gameState.cash += 1000; updateUI(); };
-        window.nextDay = () => { window.gameState.day++; updateUI(); };
-        window.buy = (item) => { alert(item + " satın alındı!"); };
-        window.toggleLeaderboard = () => { showAll = !showAll; renderLeaderboard(); };
-
-        function renderLeaderboard() {
-            const board = document.getElementById('leaderboard');
-            board.innerHTML = "";
-            let limit = showAll ? 100 : 3;
-            allScores.slice(0, limit).forEach(s => {
-                board.innerHTML += `<div class="leaderboard-item"><span>${s.name}</span> <b>$${s.score.toLocaleString()}</b></div>`;
-            });
-        }
-
-        function updateUI() {
-            document.getElementById('lblCash').innerText = window.gameState.cash.toLocaleString();
-            document.getElementById('lblStorage').innerText = `${window.gameState.storage}/${window.gameState.maxStorage}`;
-        }
-
-        document.getElementById('toggleBtn').onclick = window.toggleLeaderboard;
-        onValue(ref(db, 'scores'), (s) => {
-            allScores = [];
-            s.forEach(c => allScores.push(c.val()));
-            allScores.sort((a, b) => b.score - a.score);
-            renderLeaderboard();
-        });
-        updateUI();
-    </script>
-</body>
-</html>
+<html lang="tr"><head><title>Bazaar Tycoon</title>
+<style>
+  body{background:#0b1120;color:#f1f5f9;font-family:sans-serif;padding:20px;max-width:500px;margin:auto}
+  .btn{width:100%;padding:15px;margin:5px 0;border:none;border-radius:8px;color:white;font-weight:bold;cursor:pointer}
+  .btn:active{transform:scale(0.98)}
+  .lb-item{display:flex;justify-content:space-between;padding:8px;background:#0f172a;margin-top:5px}
+</style></head><body>
+<h1>Bazaar Tycoon</h1><p>Cash: $<span id="c">10000</span> | Storage: <span id="s">0/100</span></p>
+<button class="btn" style="background:#f59e0b" onclick="up()">📦 Upgrade Storage (-$1000, +10)</button>
+<button class="btn" style="background:#4f46e5" onclick="nxt()">Next Day ➔</button>
+<button class="btn" style="background:#0891b2" onclick="ad()">📺 Watch Ad +$1000</button>
+<div style="background:#1e293b;padding:15px;margin-top:20px"><h3>🥇 Leaderboard</h3><div id="lst"></div>
+<button id="tgl" class="btn" style="background:#475569">Show/Hide All (Top 100)</button></div>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
+  import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-database.js";
+  const db = getDatabase(initializeApp({apiKey:"AIzaSyD7ZocVE8OyDbVSwE668zpgxeUJH1CLIsU",databaseURL:"https://bazaartycoon-e8fad-default-rtdb.asia-southeast1.firebasedatabase.app",projectId:"bazaartycoon-e8fad"}));
+  let st = {c:10000, s:0, m:100, d:1, sh:false}, sc = [];
+  window.up = () => { if(st.c>=1000){st.c-=1000; st.m+=10; ui();} else alert("Yetersiz!"); };
+  window.ad = () => { st.c+=1000; ui(); };
+  window.nxt = () => { st.d++; ui(); };
+  document.getElementById('tgl').onclick = () => { st.sh=!st.sh; ren(); };
+  function ren() {
+    let l = document.getElementById('lst'); l.innerHTML = "";
+    sc.slice(0, st.sh ? 100 : 3).forEach(v => l.innerHTML += `<div class="lb-item"><span>${v.name}</span><b>$${v.score.toLocaleString()}</b></div>`);
+  }
+  function ui() { document.getElementById('c').innerText = st.c.toLocaleString(); document.getElementById('s').innerText = `${st.s}/${st.m}`; }
+  onValue(ref(db, 'scores'), (s) => {
+    sc = []; s.forEach(c => sc.push(c.val())); sc.sort((a,b) => b.score - a.score); ren();
+  });
+  ui();
+</script></body></html>
