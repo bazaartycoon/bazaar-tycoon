@@ -24,7 +24,7 @@
         .btn-upgrade { width: 100%; padding: 12px; background: var(--upgrade); margin-top: 5px; font-weight: bold; }
         .banner { background: #1e293b; padding: 15px; text-align: center; border-radius: 10px; margin-top: 15px; border: 1px solid var(--accent); cursor: pointer; color: var(--accent); font-weight: bold; }
         .save-section { background: var(--card); padding: 20px; border-radius: 15px; margin-top: 15px; border: 1px solid #334155; }
-        .leaderboard-item { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid #334155; }
+        .leaderboard-item { display: flex; justify-content: space-between; padding: 8px; background: #0f172a; margin-top: 5px; border-radius: 5px; }
     </style>
 </head>
 <body>
@@ -41,10 +41,11 @@
         <button class="btn btn-main" onclick="nextDay()">Next Day ➔</button>
         <div class="banner" onclick="watchAd()">📺 Watch Ad for +$1000</div>
         <div class="save-section">
-            <h3>🏆 Save Your Score (Player: <span id="displayName">Nusret</span>)</h3>
+            <h3>🏆 Save Your Score</h3>
+            <input type="text" id="playerName" value="Player #0000" style="width:100%; padding:10px; margin-bottom:10px; border-radius:6px; background:#0f172a; color:white; border:1px solid #475569;">
             <button class="btn btn-buy" style="width:100%" onclick="saveScore()">Save Current Score</button>
             <h3>🥇 Global Leaderboard</h3>
-            <div id="leaderboard"></div>
+            <div id="leaderboard"><em>Loading scores...</em></div>
         </div>
     </div>
 <script type="module">
@@ -52,7 +53,7 @@
     import { getDatabase, ref, push, onValue, query, orderByChild, limitToLast } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-database.js";
     
     // Global Config
-    const gameState = { day: 1, cash: 10000, debt: 0, storage: 0, maxStorage: 100, playerName: "Nusret", 
+    const gameState = { day: 1, cash: 10000, debt: 0, storage: 0, maxStorage: 100, 
         products: { 
             coffee: { name: "☕ Coffee", price: 50, min: 20, max: 100, qty: 0 },
             textiles: { name: "👕 Textiles", price: 200, min: 100, max: 400, qty: 0 },
@@ -62,13 +63,17 @@
         }
     };
 
+    // Database
     const db = getDatabase(initializeApp({ apiKey: "AIzaSyD7ZocVE8OyDbVSwE668zpgxeUJH1CLIsU", databaseURL: "https://bazaartycoon-e8fad-default-rtdb.asia-southeast1.firebasedatabase.app", projectId: "bazaartycoon-e8fad" }));
+
+    // Set Random Name
+    document.getElementById('playerName').value = `Player #${Math.floor(1000 + Math.random() * 9000)}`;
 
     // Core Engines
     window.nextDay = () => { gameState.day++; Object.keys(gameState.products).forEach(k => { let p = gameState.products[k]; p.price = Math.floor(Math.random() * (p.max - p.min + 1)) + p.min; }); updateUI(); };
     window.upgradeStorage = () => { if(gameState.cash >= 500) { gameState.cash -= 500; gameState.maxStorage += 50; updateUI(); } else alert("Insufficient Cash!"); };
     window.watchAd = () => { gameState.cash += 1000; updateUI(); };
-    window.saveScore = () => { push(ref(db, 'scores'), { name: gameState.playerName, score: gameState.cash, date: Date.now() }); alert("Score Saved!"); };
+    window.saveScore = () => { push(ref(db, 'scores'), { name: document.getElementById('playerName').value, score: gameState.cash, date: Date.now() }); alert("Score Saved!"); };
 
     // UI Renderer
     function updateUI() {
@@ -108,13 +113,18 @@
         if(p.qty >= q) { gameState.cash += (p.price * q); p.qty -= q; gameState.storage -= q; updateUI(); }
     };
 
-    // Firebase Listener
-    onValue(query(ref(db, 'scores'), orderByChild('score'), limitToLast(5)), (s) => {
-        let html = ""; s.forEach(c => html += `<div class="leaderboard-item"><span>${c.val().name}</span> <b>$${c.val().score.toLocaleString()}</b></div>`);
-        document.getElementById('leaderboard').innerHTML = html;
+    // Firebase Listener - Fixed
+    onValue(query(ref(db, 'scores'), orderByChild('score'), limitToLast(5)), (snapshot) => {
+        const leaderboard = document.getElementById('leaderboard');
+        leaderboard.innerHTML = "";
+        if(!snapshot.exists()) { leaderboard.innerHTML = "<em>No scores yet.</em>"; return; }
+        let scores = [];
+        snapshot.forEach(child => scores.push(child.val()));
+        scores.reverse().forEach(s => {
+            leaderboard.innerHTML += `<div class="leaderboard-item"><span>${s.name}</span> <b>$${s.score.toLocaleString()}</b></div>`;
+        });
     });
 
-    document.getElementById('displayName').innerText = gameState.playerName;
     updateUI();
 </script>
 </body>
